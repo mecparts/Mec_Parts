@@ -163,10 +163,12 @@ void MainWindow::on_program_quit()
 
 void MainWindow::on_new_database()
 {
+	// new
 }
 
 void MainWindow::on_open_database()
 {
+	// open
 }
 
 void MainWindow::on_import_pricelist()
