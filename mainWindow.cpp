@@ -48,6 +48,7 @@ MainWindow::MainWindow() :
 	m_pOpenDatabaseMenuItem(NULL),
 	m_pProgramQuitMenuItem(NULL),
 	m_pImportPricelistMenuItem(NULL),
+	m_pDeletePricelistMenuItem(NULL),
 	m_pAboutMenuItem(NULL),
 	m_pPricelistMenu(NULL),
 	m_pPricelistStore(NULL),
@@ -128,9 +129,6 @@ MainWindow::MainWindow() :
 	GET_WIDGET(m_refBuilder,"programQuitMenuItem",m_pProgramQuitMenuItem);
 	m_pProgramQuitMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_program_quit));
 
-	GET_WIDGET(m_refBuilder,"importPricelistMenuItem",m_pImportPricelistMenuItem);
-	m_pImportPricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_import_pricelist));
-
 	GET_WIDGET(m_refBuilder,"aboutMenuItem",m_pAboutMenuItem);
 	m_pAboutMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_about));
 
@@ -190,20 +188,6 @@ void MainWindow::on_open_database()
 {
 }
 
-void MainWindow::on_import_pricelist()
-{
-	Gtk::FileChooserDialog *pImport = NULL;
-	GET_WIDGET(m_refBuilder,"importFileChooserDialog",pImport);
-	if( pImport->run() == Gtk::RESPONSE_OK ) {
-		pImport->run();
-		if( !pImport->get_filename().empty() ) {
-			
-		}
-	} else {
-		pImport->hide();
-	}
-}
-
 void MainWindow::on_about()
 {
 	Gtk::AboutDialog *pAbout = NULL;
@@ -219,11 +203,16 @@ void MainWindow::on_about()
 void MainWindow::PricelistsSetup()
 {
 	GET_WIDGET(m_refBuilder,"pricelistMenu",m_pPricelistMenu);
-	
 	m_pPricelistStore = Glib::RefPtr<Gtk::ListStore>::cast_static(m_refBuilder->get_object("pricelistsStore"));
 	if( !m_pPricelistStore ) {
 		throw "Could not get pricelistStore object";
 	}
+	GET_WIDGET(m_refBuilder,"importPricelistMenuItem",m_pImportPricelistMenuItem);
+	m_pImportPricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_import_pricelist));
+
+	GET_WIDGET(m_refBuilder,"deletePricelistMenuItem",m_pDeletePricelistMenuItem);
+	m_pDeletePricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_delete_pricelist));
+
 
 	const char *cmd = 
 		"SELECT num,description FROM pricelists ORDER BY num";
@@ -255,9 +244,28 @@ void MainWindow::PopulatePricelists(gint64 num,string description)
 	row[m_pricelistStore.m_description] = description;
 }
 
+void MainWindow::on_import_pricelist()
+{
+	Gtk::FileChooserDialog *pImport = NULL;
+	GET_WIDGET(m_refBuilder,"importFileChooserDialog",pImport);
+	if( pImport->run() == Gtk::RESPONSE_OK ) {
+		pImport->run();
+		if( !pImport->get_filename().empty() ) {
+			
+		}
+	} else {
+		pImport->hide();
+	}
+}
+
+void MainWindow::on_delete_pricelist()
+{
+}
+
 void MainWindow::on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId)
 {
 	if( pMenuItem->get_active() ) {
+		m_pDeletePricelistMenuItem->set_sensitive();
 		m_pricelistNumber = rowId;
 		if( m_initialized ) {
 			FillCollection();

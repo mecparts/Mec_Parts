@@ -63,6 +63,7 @@ class MainWindow
 		Gtk::MenuItem *m_pOpenDatabaseMenuItem;
 		Gtk::MenuItem *m_pProgramQuitMenuItem;
 		Gtk::MenuItem *m_pImportPricelistMenuItem;
+		Gtk::MenuItem *m_pDeletePricelistMenuItem;
 		Gtk::MenuItem *m_pAboutMenuItem;
 		void on_program_quit();
 		bool on_delete_event(GdkEventAny *e);
@@ -70,7 +71,6 @@ class MainWindow
 		
 		void on_new_database();
 		void on_open_database();
-		void on_import_pricelist();
 		void on_about();
 		
 		void PricelistsSetup();
@@ -79,6 +79,8 @@ class MainWindow
 		gint64 m_pricelistNumber;
 		PricelistsStore m_pricelistStore;
 		Gtk::RadioMenuItem *m_pFirstPricelistMenuItem;
+		void on_import_pricelist();
+		void on_delete_pricelist();
 
 		void on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId);
 		
