@@ -1,3 +1,24 @@
+/*
+ * mainWindow.cpp
+ * 
+ * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -163,20 +184,24 @@ void MainWindow::on_program_quit()
 
 void MainWindow::on_new_database()
 {
-	// new
 }
 
 void MainWindow::on_open_database()
 {
-	// open
 }
 
 void MainWindow::on_import_pricelist()
 {
 	Gtk::FileChooserDialog *pImport = NULL;
 	GET_WIDGET(m_refBuilder,"importFileChooserDialog",pImport);
-	pImport->run();
-	pImport->hide();
+	if( pImport->run() == Gtk::RESPONSE_OK ) {
+		pImport->run();
+		if( !pImport->get_filename().empty() ) {
+			
+		}
+	} else {
+		pImport->hide();
+	}
 }
 
 void MainWindow::on_about()

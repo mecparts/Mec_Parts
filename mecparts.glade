@@ -1377,6 +1377,7 @@ You should have received a copy of the GNU General Public Licence along with Gla
     <property name="title" translatable="yes">Select an CSV/Fixed-Width file to import</property>
     <property name="window_position">center-on-parent</property>
     <property name="type_hint">normal</property>
+    <property name="skip_taskbar_hint">True</property>
     <property name="transient_for">mainWindow</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox8">
