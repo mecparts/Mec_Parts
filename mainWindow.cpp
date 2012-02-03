@@ -226,7 +226,7 @@ void MainWindow::PricelistsSetup()
 		gint64 num = row[m_pricelistStore.m_num];
 		string description = row[m_pricelistStore.m_description];
 		Gtk::RadioMenuItem *pMenuItem = new Gtk::RadioMenuItem(group,description);
-		m_pPricelistMenu->append(*Gtk::manage(pMenuItem));
+		m_pPricelistMenu->append(*pMenuItem);
 		pMenuItem->show();
 		pMenuItem->signal_toggled().connect( sigc::bind<Gtk::RadioMenuItem *,gint64>(sigc::mem_fun(*this,&MainWindow::on_pricelist_toggled_event),pMenuItem,num));
 		if( selected ) {
@@ -260,6 +260,54 @@ void MainWindow::on_import_pricelist()
 
 void MainWindow::on_delete_pricelist()
 {
+	// search through the pricelist menu to find the active pricelist and delete it
+	Glib::ListHandle<Gtk::Widget*> menuItems = m_pPricelistMenu->get_children();
+	Glib::ListHandle<Gtk::Widget*>::iterator menuIter = menuItems.begin();
+	for( ; menuIter != menuItems.end(); ++menuIter ) {
+		Gtk::RadioMenuItem *pMenuItem = dynamic_cast<Gtk::RadioMenuItem *>(*menuIter);
+		if( pMenuItem != NULL && pMenuItem->get_active() ) {
+			// located selected radio menu item, make sure it sure be erased
+			Gtk::MessageDialog areYouSure(*m_pWindow,"Are you sure?",false,Gtk::MESSAGE_QUESTION,Gtk::BUTTONS_OK_CANCEL);
+			areYouSure.set_secondary_text("Delete pricelist '"+pMenuItem->get_label()+"'?");
+			if( areYouSure.run() == Gtk::RESPONSE_OK ) {
+				// remove pricelist from the datastore
+				Gtk::TreeModel::Children pricelistRows = m_pPricelistStore->children();
+				for( Gtk::TreeModel::iterator storeIter = pricelistRows.begin(); storeIter!= pricelistRows.end(); ++storeIter ) {
+					Gtk::TreeModel::Row pricelistRow = *storeIter;
+					if( pricelistRow[m_pricelistStore.m_num] == m_pricelistNumber ) {
+						m_pPricelistStore->erase(storeIter);
+						stringstream sql;
+						sql << "DELETE FROM part_prices WHERE pricelist_num=" << m_pricelistNumber << "; DELETE FROM pricelists WHERE num=" << m_pricelistNumber;
+						m_pSql->ExecNonQuery(&sql);
+						m_pricelistNumber = 0;
+						break;
+					}
+				}
+				// remove pricelist from menu
+				pMenuItem->reset_group();
+				m_pPricelistMenu->remove(*pMenuItem);
+				gtk_widget_destroy((GtkWidget *)(pMenuItem->gobj()));
+				// if there's another price list still in the list, select it
+				bool foundNewList = false;
+				Glib::ListHandle<Gtk::Widget*> menuItems2 = m_pPricelistMenu->get_children();
+				for( menuIter = menuItems2.begin(); menuIter!=menuItems2.end(); ++menuIter ) {
+					pMenuItem = dynamic_cast<Gtk::RadioMenuItem *>(*menuIter);
+					if( pMenuItem != NULL ) {
+						pMenuItem->set_active();
+						foundNewList = true;
+						break;
+					}
+				}
+				if( !foundNewList ) {
+					m_pricelistNumber = 0;
+					FillCollection();
+					FillParts();
+					on_neededComboBox_changed_event();
+				}
+			}
+			break;
+		}
+	}
 }
 
 void MainWindow::on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId)

@@ -39,7 +39,7 @@ void Sql::ExecSql(sqlite3* &db,const char *sql,int (*callback)(void *wnd,int arg
 	char *zErrMsg = NULL;
 	int rc;
 	
-//	cout << sql << endl;
+	//cout << sql << endl;
 	rc = sqlite3_open(m_dbName.c_str(), &db);
 	if( rc ) {
 		stringstream err;

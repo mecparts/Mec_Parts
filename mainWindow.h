@@ -81,7 +81,6 @@ class MainWindow
 		Gtk::RadioMenuItem *m_pFirstPricelistMenuItem;
 		void on_import_pricelist();
 		void on_delete_pricelist();
-
 		void on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId);
 		
 		Gtk::TreeView *m_pCollectionView;

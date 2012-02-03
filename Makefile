@@ -3,7 +3,7 @@
 CC = g++
 
 DEPS = 
-SRCS = main.cpp mainWindow.cpp config.cpp selectPartsDialog.cpp selectSetDialog.cpp newPartDialog.cpp newSetDialog.cpp sql.cpp
+SRCS = main.cpp mainWindow.cpp config.cpp selectPartsDialog.cpp selectSetDialog.cpp newPartDialog.cpp newSetDialog.cpp sql.cpp csvReader.cpp
 OBJS = $(SRCS:.cpp=.o)
 EXE = mecparts
 
@@ -27,7 +27,8 @@ newPartDialog.o: newPartDialog.h mecparts.h
 newSetDialog.o: newSetDialog.h mecparts.h
 selectPartsDialog.o: selectPartsDialog.h mecparts.h config.h
 selectSetDialog.o: selectSetDialog.h mecparts.h config.h
-sql.o : sql.h mainWindow.h
+sql.o: sql.h mainWindow.h
+csvReader.o: csvReader.h
 
 $(EXE): $(OBJS)
 	$(CC) $(LFLAGS) $(OBJS) $(LIBS) -o $@
