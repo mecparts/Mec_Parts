@@ -25,9 +25,11 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <assert.h>
+#include <locale.h>
 #include <boost/regex.hpp>
 #include "mainWindow.h"
 
+static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName);
 static int PopulatePricelistsCallback(void *wnd, int argc, char **argv, char **azColName);
 static int PopulatePartsCallback(void *wnd, int argc, char **argv, char **azColName);
 static int PopulateSetsCallback(void *wnd, int argc, char **argv, char **azColName);
@@ -47,13 +49,13 @@ MainWindow::MainWindow() :
 	m_pNewDatabaseMenuItem(NULL),
 	m_pOpenDatabaseMenuItem(NULL),
 	m_pProgramQuitMenuItem(NULL),
-	m_pImportPricelistMenuItem(NULL),
-	m_pDeletePricelistMenuItem(NULL),
 	m_pAboutMenuItem(NULL),
-	m_pPricelistMenu(NULL),
-	m_pPricelistStore(NULL),
+	m_pCurrenciesView(NULL),
+	m_pCurrenciesStore(NULL),
+	m_currencyCode(""),
+	m_pPricelistsView(NULL),
+	m_pPricelistsStore(NULL),
 	m_pricelistNumber(0),
-	m_pFirstPricelistMenuItem(NULL),
 	m_pCollectionView(NULL),
 	m_pCollectionStore(NULL),
 	m_pCollectionCountCost(NULL),
@@ -105,7 +107,7 @@ MainWindow::MainWindow() :
 		throw "null m_refBuilder";
 	}
 	try {
-		m_refBuilder->add_from_file("mecparts.glade");
+		m_refBuilder->add_from_file("mecparts.ui");
 	}
 	catch( const Glib::FileError &ex ) {
 		throw "FileError: "+ex.what();
@@ -143,6 +145,7 @@ MainWindow::MainWindow() :
 		m_pWindow->move(x,y);
 	}
 
+	CurrenciesSetup();
 	PricelistsSetup();
 	PartsSetup();
 	SetsSetup();
@@ -150,8 +153,10 @@ MainWindow::MainWindow() :
 	NeededSetup();
 
 	m_initialized = true;
-	if( m_pPricelistStore->children().size() > 0 ) {
-		m_pFirstPricelistMenuItem->toggled();
+	if( m_pPricelistsStore->children().size() > 0 ) {
+		Gtk::TreeModel::Children rows = m_pPricelistsStore->children();
+		Gtk::TreeModel::iterator r = rows.begin();
+		(*r)[m_pricelistsStore.m_use] = true;
 	}
 	if( m_pSetsStore->children().size() > 0 ) {
 		m_pCollectionSetComboBox->set_active(0);
@@ -199,51 +204,95 @@ void MainWindow::on_about()
 	}
 }
 #endif
+#ifndef _Currencies_Routines
+void MainWindow::CurrenciesSetup()
+{
+	struct lconv *locale;
+	locale=localeconv();
+	string currSymbol = locale->int_curr_symbol;
+	m_localeCurrencyCode = currSymbol.substr(0,3);
+
+	GET_OBJECT(m_refBuilder,"currenciesStore",m_pCurrenciesStore,ListStore)
+	const char *cmd =
+		"SELECT code,name,rate FROM currencies ORDER BY code";
+	m_pSql->ExecQuery(cmd,PopulateCurrenciesCallback);
+
+	GET_WIDGET(m_refBuilder,"currenciesView",m_pCurrenciesView)
+	m_pCurrenciesView->append_column_numeric_editable("Rate",m_currenciesStore.m_rate,"%g");
+
+	Gtk::CellRendererToggle *pCellRenderer;
+	GET_TOGGLE_RENDERER("currenciesUseCellRendererToggle",pCellRenderer,m_pCurrenciesView,m_currenciesStore.m_use.index())
+	pCellRenderer->signal_toggled().connect(sigc::mem_fun(*this,&MainWindow::on_currency_use_toggled));
+}
+
+void MainWindow::on_currency_use_toggled(const Glib::ustring &pathStr)
+{
+	Gtk::TreeIter iter = m_pCurrenciesStore->get_iter(pathStr);
+	if( !iter ) {
+		throw "No iter for "+pathStr;
+	}
+	string selectedCode = (*(iter))[m_currenciesStore.m_code];
+	Gtk::TreeModel::Children rows = m_pCurrenciesStore->children();
+	for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
+		Gtk::TreeModel::Row row = *r;
+		string currCode = row[m_currenciesStore.m_code];
+		row[m_currenciesStore.m_use] = (selectedCode == currCode);
+	}
+}
+
+void MainWindow::PopulateCurrencies(string code,string name,double rate)
+{
+	Gtk::TreeModel::Row row = *(m_pCurrenciesStore->append());
+	row[m_currenciesStore.m_use] = (code==m_localeCurrencyCode);
+	row[m_currenciesStore.m_code] = code;
+	row[m_currenciesStore.m_name] = name;
+	row[m_currenciesStore.m_rate] = rate;
+}
+
+#endif
 #ifndef _Pricelists_Routines
 void MainWindow::PricelistsSetup()
 {
-	GET_WIDGET(m_refBuilder,"pricelistMenu",m_pPricelistMenu);
-	m_pPricelistStore = Glib::RefPtr<Gtk::ListStore>::cast_static(m_refBuilder->get_object("pricelistsStore"));
-	if( !m_pPricelistStore ) {
-		throw "Could not get pricelistStore object";
-	}
-	GET_WIDGET(m_refBuilder,"importPricelistMenuItem",m_pImportPricelistMenuItem);
-	m_pImportPricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_import_pricelist));
-
-	GET_WIDGET(m_refBuilder,"deletePricelistMenuItem",m_pDeletePricelistMenuItem);
-	m_pDeletePricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_delete_pricelist));
-
-
+	GET_OBJECT(m_refBuilder,"pricelistsStore",m_pPricelistsStore,ListStore)
 	const char *cmd = 
-		"SELECT num,description FROM pricelists ORDER BY num";
+		"SELECT pl.num,pl.description,c.name,c.code FROM pricelists pl, currencies c WHERE pl.currency_code=c.code ORDER BY num";
 	m_pSql->ExecQuery(cmd,PopulatePricelistsCallback);
 
-	Gtk::TreeModel::Children rows = m_pPricelistStore->children();
-	Gtk::RadioMenuItem::Group group;
-	bool selected = true;
+	GET_WIDGET(m_refBuilder,"pricelistsView",m_pPricelistsView)
+	
+	Gtk::CellRendererToggle *pCellRenderer;
+	GET_TOGGLE_RENDERER("pricelistsUseCellRendererToggle",pCellRenderer,m_pPricelistsView,m_pricelistsStore.m_use.index())
+	pCellRenderer->signal_toggled().connect(sigc::mem_fun(*this,&MainWindow::on_pricelist_use_toggled));
+}
+
+void MainWindow::PopulatePricelists(gint64 num,string description,string currencyName,string code)
+{
+	Gtk::TreeModel::Row row = *(m_pPricelistsStore->append());
+	row[m_pricelistsStore.m_use] = false;
+	row[m_pricelistsStore.m_num] = num;
+	row[m_pricelistsStore.m_description] = description;
+	row[m_pricelistsStore.m_currencyName] = currencyName;
+	row[m_pricelistsStore.m_currencyCode] = code;
+}
+
+void MainWindow::on_pricelist_use_toggled(const Glib::ustring &pathStr)
+{
+	Gtk::TreeIter iter = m_pPricelistsStore->get_iter(pathStr);
+	if( !iter ) {
+		throw "No iter for "+pathStr;
+	}
+	m_pricelistNumber = (*(iter))[m_pricelistsStore.m_num];
+	Gtk::TreeModel::Children rows = m_pPricelistsStore->children();
 	for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
 		Gtk::TreeModel::Row row = *r;
-		gint64 num = row[m_pricelistStore.m_num];
-		string description = row[m_pricelistStore.m_description];
-		Gtk::RadioMenuItem *pMenuItem = new Gtk::RadioMenuItem(group,description);
-		m_pPricelistMenu->append(*pMenuItem);
-		pMenuItem->show();
-		pMenuItem->signal_toggled().connect( sigc::bind<Gtk::RadioMenuItem *,gint64>(sigc::mem_fun(*this,&MainWindow::on_pricelist_toggled_event),pMenuItem,num));
-		if( selected ) {
-			m_pFirstPricelistMenuItem = pMenuItem;
-			selected = false;
-			group = pMenuItem->get_group();
-		}
+		gint64 pricelistNum = row[m_pricelistsStore.m_num];
+		row[m_pricelistsStore.m_use] = (m_pricelistNumber == pricelistNum);
 	}
+	FillCollection();
+	FillParts();
+	on_neededComboBox_changed_event();
 }
-
-void MainWindow::PopulatePricelists(gint64 num,string description)
-{
-	Gtk::TreeModel::Row row = *(m_pPricelistStore->append());
-	row[m_pricelistStore.m_num] = num;
-	row[m_pricelistStore.m_description] = description;
-}
-
+#if 0
 void MainWindow::on_import_pricelist()
 {
 	Gtk::FileChooserDialog *pImport = NULL;
@@ -309,43 +358,28 @@ void MainWindow::on_delete_pricelist()
 		}
 	}
 }
-
-void MainWindow::on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId)
-{
-	if( pMenuItem->get_active() ) {
-		m_pDeletePricelistMenuItem->set_sensitive();
-		m_pricelistNumber = rowId;
-		if( m_initialized ) {
-			FillCollection();
-			FillParts();
-			on_neededComboBox_changed_event();
-		}
-	}
-}
+#endif
 #endif
 #ifndef _Parts_Routines
 void MainWindow::PartsSetup()
 {
-	m_pPartsStore = Glib::RefPtr<Gtk::ListStore>::cast_static(m_refBuilder->get_object("partsStore"));
-	if( !m_pPartsStore ) {
-		throw "Could not get partsStore object";
-	}
+	GET_OBJECT(m_refBuilder,"partsStore",m_pPartsStore,ListStore)
 
-	GET_WIDGET(m_refBuilder,"partsView",m_pPartsView);
+	GET_WIDGET(m_refBuilder,"partsView",m_pPartsView)
 	m_pPartsView->append_column_numeric_editable("Price",m_partsStore.m_price,"%.2lf");
 	m_pPartsView->append_column_editable("Notes",m_partsStore.m_notes);
 
 	Gtk::CellRendererText *pCellRenderer;
-	CELL_RENDERER("partsDescriptionCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_description.index())
+	GET_TEXT_RENDERER("partsDescriptionCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_description.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_description_edited));
 
-	CELL_RENDERER("partsSizeCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_size.index())
+	GET_TEXT_RENDERER("partsSizeCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_size.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_size_edited));
 
-	CELL_RENDERER("partsPriceCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_price.index())
+	GET_TEXT_RENDERER("partsPriceCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_price.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
 
-	CELL_RENDERER("partsNotesCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_notes.index())
+	GET_TEXT_RENDERER("partsNotesCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_notes.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_notes_edited));
 
   m_pPartsView->get_selection()->signal_changed().connect(sigc::mem_fun(*this,&MainWindow::on_parts_selection_changed_event));
@@ -688,13 +722,13 @@ void MainWindow::SetsSetup()
 		m_pSetsView->append_column_numeric_editable("Ended",m_setsStore.m_ended,"%d");
 		
 		Gtk::CellRendererText *pCellRenderer;
-		CELL_RENDERER("setsDescriptionCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_description.index())
+		GET_TEXT_RENDERER("setsDescriptionCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_description.index())
 		pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_sets_description_edited));
 
-		CELL_RENDERER("setsStartedCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_started.index())
+		GET_TEXT_RENDERER("setsStartedCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_started.index())
 		pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_sets_started_edited));
 
-		CELL_RENDERER("setsEndedCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_ended.index())
+		GET_TEXT_RENDERER("setsEndedCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_ended.index())
 		pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_sets_ended_edited));
 
     m_pSetsView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_button_pressed));
@@ -860,21 +894,18 @@ void MainWindow::CollectionSetup()
 {
   GET_WIDGET(m_refBuilder,"collectionView",m_pCollectionView)
   m_pCollectionView->get_selection()->signal_changed().connect(sigc::mem_fun(*this,&MainWindow::on_collection_selection_changed_event));
-   m_pCollectionView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_button_pressed));
+  m_pCollectionView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_button_pressed));
 
 	GET_WIDGET(m_refBuilder,"collectionCountCost",m_pCollectionCountCost);
 		
   GET_WIDGET(m_refBuilder,"collectionView",m_pCollectionView)
 	
-	m_pCollectionStore = Glib::RefPtr<Gtk::ListStore>::cast_static(m_refBuilder->get_object("collectionStore"));
-  if( !m_pCollectionStore ) {
-		throw "Could not get collectionStore object";
-	}
+	GET_OBJECT(m_refBuilder,"collectionStore",m_pCollectionStore,ListStore);
 		
 	m_pCollectionView->append_column_numeric("Price",m_collectionStore.m_price,"%.2lf");
 
 	Gtk::CellRendererText *pCellRenderer;
-	CELL_RENDERER("collectionCountCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
+	GET_TEXT_RENDERER("collectionCountCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
 		
 	m_pCollectionView->append_column_numeric("Total",m_collectionStore.m_total,"%.2lf");
@@ -1189,10 +1220,7 @@ void MainWindow::NeededSetup()
 
 		GET_WIDGET(m_refBuilder,"neededCost",m_pNeededCost);
 	
-		m_pNeededStore = Glib::RefPtr<Gtk::ListStore>::cast_static(m_refBuilder->get_object("neededStore"));
-	  if( !m_pNeededStore ) {
-			throw "Could not get neededStore object";
-		}
+		GET_OBJECT(m_refBuilder,"neededStore",m_pNeededStore,ListStore)
 		
 		m_pNeededView->append_column_numeric("Price",m_neededStore.m_price,"%.2lf");
 
@@ -1300,12 +1328,24 @@ void MainWindow::PopulateNeeded(string partNumber,string description,string size
 
 #endif
 #ifndef _Static_Callbacks
+static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName)
+{
+	MainWindow *window = (MainWindow *)wnd;
+	window->PopulateCurrencies(
+		argv[0],				// code
+		argv[1],				// name
+		atof(argv[2]));	// rate
+	return 0;
+}
+
 static int PopulatePricelistsCallback(void *wnd, int argc, char **argv, char **azColName)
 {
 	MainWindow *window = (MainWindow *)wnd;
 	window->PopulatePricelists(
 		atol(argv[0]),	// num
-		argv[1]);				// description
+		argv[1],				// description
+		argv[2],				// currency name
+		argv[3]);				// currency code
 	return 0;
 }
 

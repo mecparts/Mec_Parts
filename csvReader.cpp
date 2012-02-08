@@ -27,11 +27,16 @@
 
 using namespace std;
 
-CsvReader::CsvReader()
+CsvReader::CsvReader(string csvFilename)
+{
+	m_csvFilename = csvFilename;
+}
+
+CsvReader::~CsvReader()
 {
 }
 
-CsvReader::Strip(string field)
+string CsvReader::Strip(string field)
 {
 	string output=field;
 	char quote=0;
@@ -68,7 +73,7 @@ CsvReader::Strip(string field)
 	return output;
 }
 
-CsvReader::void Parse(string line,vector<string> &fields)
+void CsvReader::Parse(string line,vector<string> &fields)
 {
 	int begin;
 	int current;
@@ -85,9 +90,9 @@ CsvReader::void Parse(string line,vector<string> &fields)
 		}
 		if( !quote && (line[current]==',' || current==length-1) ) {
 			if( line[current]==',' ) {
-				fields.push_back(strip(line.substr(begin,current-begin)));
+				fields.push_back(Strip(line.substr(begin,current-begin)));
 			} else {
-				fields.push_back(strip(line.substr(begin,current-begin+1)));
+				fields.push_back(Strip(line.substr(begin,current-begin+1)));
 			}
 			begin = ++current;
 			quote = 0;
@@ -97,22 +102,17 @@ CsvReader::void Parse(string line,vector<string> &fields)
 	}
 }
 
-#ifdef CSVREADER_TESTING
-int main (int argc, char **argv) 
+void CsvReader::Parse() 
 {
-	if (argc < 2) {
-		printf("usage:\n\tcsv2glist fname.csv\n");
-	}
-	ifstream ifs(argv[1],ifstream::in);
+	ifstream ifs(m_csvFilename.c_str(),ifstream::in);
 	string line;
 	vector<string> fields;
 	while( ifs.good() ) {
 		getline(ifs,line);
-		parse(line,fields);
+		Parse(line,fields);
 		cout << fields.size() << ": " << line << endl;
 		for( unsigned i=0; i<fields.size(); ++i ) {
 			cout << "  " << fields[i] << endl;
 		}
 	}
 }
-#endif

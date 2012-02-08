@@ -22,7 +22,7 @@ install: mecparts
 #dependencies of object files on header files
 config.o: config.h mecparts.h
 main.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h neededStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newSetDialog.h sql.h
-mainWindow.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h neededStore.h pricelistsStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newSetDialog.h sql.h
+mainWindow.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h neededStore.h pricelistsStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newSetDialog.h sql.h currenciesStore.h
 newPartDialog.o: newPartDialog.h mecparts.h
 newSetDialog.o: newSetDialog.h mecparts.h
 selectPartsDialog.o: selectPartsDialog.h mecparts.h config.h

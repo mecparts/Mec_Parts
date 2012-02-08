@@ -1,5 +1,5 @@
 /*
- * csvReader.h
+ * currenciesStore.h
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -19,24 +19,29 @@
  * MA 02110-1301, USA.
  */
 
-#include <string>
-#include <vector>
+#ifndef CURRENCIESSTORE_H
+#define CURRENCIESSTORE_H
 
-#ifndef _CSVREADER_H
-#define _CSVREADER_H
+#include "mecparts.h"
 
 using namespace std;
 
-class CsvReader
+//Tree model columns:
+class CurrenciesStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
-		CsvReader(string csvFilename);
-		virtual ~CsvReader();
-		void Parse(string line,vector<string> &fields);
-		void Parse();
 
-	private:
-		string Strip(string field);
-		string m_csvFilename;
+		Gtk::TreeModelColumn<bool> m_use;
+		Gtk::TreeModelColumn<string> m_code;
+		Gtk::TreeModelColumn<string> m_name;
+		Gtk::TreeModelColumn<gdouble> m_rate;
+		
+		CurrenciesStore()
+		{
+			add(m_use);
+			add(m_code);
+			add(m_name);
+			add(m_rate);
+		}
 };
 #endif

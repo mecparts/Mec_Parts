@@ -29,6 +29,7 @@
 #include "setsStore.h"
 #include "neededStore.h"
 #include "pricelistsStore.h"
+#include "currenciesStore.h"
 #include "config.h"
 #include "selectPartsDialog.h"
 #include "selectSetDialog.h"
@@ -44,7 +45,8 @@ class MainWindow
 		
 		Gtk::Window *m_pWindow;
 
-		void PopulatePricelists(gint64 num,string description);
+		void PopulateCurrencies(string code,string name,double rate);
+		void PopulatePricelists(gint64 num,string description,string currencyName,string code);
 		void PopulateParts(gint64 rowId,string partNumber,string description,string size,gdouble price,string notes,string pnPrefix,int pnDigits,string pnSuffix);
 		void PopulateSets(string setNumber,string description,int started,int ended,gint64 rowId);
 		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix);
@@ -62,8 +64,6 @@ class MainWindow
 		Gtk::MenuItem *m_pNewDatabaseMenuItem;
 		Gtk::MenuItem *m_pOpenDatabaseMenuItem;
 		Gtk::MenuItem *m_pProgramQuitMenuItem;
-		Gtk::MenuItem *m_pImportPricelistMenuItem;
-		Gtk::MenuItem *m_pDeletePricelistMenuItem;
 		Gtk::MenuItem *m_pAboutMenuItem;
 		void on_program_quit();
 		bool on_delete_event(GdkEventAny *e);
@@ -73,15 +73,20 @@ class MainWindow
 		void on_open_database();
 		void on_about();
 		
+		void CurrenciesSetup();
+		void on_currency_use_toggled(const Glib::ustring &pathStr);
+		Gtk::TreeView *m_pCurrenciesView;
+		Glib::RefPtr<Gtk::ListStore> m_pCurrenciesStore;
+		string m_currencyCode;
+		CurrenciesStore m_currenciesStore;
+		string m_localeCurrencyCode;
+		
 		void PricelistsSetup();
-		Gtk::Menu *m_pPricelistMenu;
-		Glib::RefPtr<Gtk::ListStore> m_pPricelistStore;
+		void on_pricelist_use_toggled(const Glib::ustring &pathStr);
+		Gtk::TreeView *m_pPricelistsView;
+		Glib::RefPtr<Gtk::ListStore> m_pPricelistsStore;
 		gint64 m_pricelistNumber;
-		PricelistsStore m_pricelistStore;
-		Gtk::RadioMenuItem *m_pFirstPricelistMenuItem;
-		void on_import_pricelist();
-		void on_delete_pricelist();
-		void on_pricelist_toggled_event(Gtk::RadioMenuItem *pMenuItem,gint64 rowId);
+		PricelistsStore m_pricelistsStore;
 		
 		Gtk::TreeView *m_pCollectionView;
 		CollectionStore m_collectionStore;
