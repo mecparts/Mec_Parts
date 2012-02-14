@@ -100,6 +100,8 @@
       <column type="gchararray"/>
       <!-- column-name currencyCode -->
       <column type="gchararray"/>
+      <!-- column-name currencyRate -->
+      <column type="gdouble"/>
       <!-- column-name pricelistNum -->
       <column type="gint64"/>
     </columns>
@@ -623,7 +625,6 @@
                           <object class="GtkCellRendererCombo" id="priceslistsCurrencyCellRendererCombo">
                             <property name="editable">True</property>
                             <property name="has_entry">False</property>
-                            <property name="model">currenciesStore</property>
                             <property name="text_column">2</property>
                           </object>
                           <attributes>
@@ -1412,7 +1413,7 @@
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="newPartCancelButton1">
+              <object class="GtkButton" id="newSetCancelButton">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1449,7 +1450,7 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">newPartCancelButton1</action-widget>
+      <action-widget response="-6">newSetCancelButton</action-widget>
       <action-widget response="-5">newSetOkButton</action-widget>
     </action-widgets>
   </object>
@@ -1928,6 +1929,186 @@ You should have received a copy of the GNU General Public Licence along with Gla
     <action-widgets>
       <action-widget response="0">cancel_button</action-widget>
       <action-widget response="0">ok_button</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkMenu" id="pricelistsContextMenu">
+    <property name="visible">True</property>
+    <property name="ubuntu_local">True</property>
+    <child>
+      <object class="GtkMenuItem" id="pricelistsNewPricelistMenuItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">_New Pricelist</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="pricelistsDeletePricelistMenuItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">_Delete Pricelist</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkMenu" id="currenciesContextMenu">
+    <property name="visible">True</property>
+    <property name="ubuntu_local">True</property>
+    <child>
+      <object class="GtkMenuItem" id="currenciesUpdateCurrencyMenuItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">_Update Currencies</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="currenciesNewCurrencyMenuItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">_New Currency</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="currenciesDeleteCurrencyMenuItem">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">_Delete Currency</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkDialog" id="newPricelistDialog">
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Create New Part</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="type_hint">normal</property>
+    <property name="transient_for">mainWindow</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox12">
+        <property name="visible">True</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkTable" id="table4">
+            <property name="visible">True</property>
+            <property name="n_rows">3</property>
+            <property name="n_columns">2</property>
+            <property name="column_spacing">3</property>
+            <property name="row_spacing">2</property>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">_Description:</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options">GTK_FILL</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="pricelistDescriptionEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="invisible_char">●</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label4">
+                <property name="visible">True</property>
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">_Currency Code:</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="x_options">GTK_FILL</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="newPricelistErrorLabel">
+                <property name="visible">True</property>
+                <attributes>
+                  <attribute name="foreground" value="#ffff00000000"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="right_attach">2</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="pricelistCurrencyComboBox">
+                <property name="visible">True</property>
+                <property name="model">currenciesStore</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="y_options"></property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area12">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="newPricelistCancelButton">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="newPricelistOkButton">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-6">newPricelistCancelButton</action-widget>
+      <action-widget response="-5">newPricelistOkButton</action-widget>
     </action-widgets>
   </object>
 </interface>

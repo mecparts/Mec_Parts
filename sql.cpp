@@ -50,7 +50,6 @@ void Sql::ExecSql(sqlite3* &db,const char *sql,int (*callback)(void *wnd,int arg
 	if( rc!=SQLITE_OK ) {
 		stringstream err;
 		err << "SQL error: " << zErrMsg << ' ' << sql;
-		cout << err.str() << endl;
 		sqlite3_free(zErrMsg);
 		sqlite3_close(db);
 		throw err.str();

@@ -82,4 +82,4 @@ double NewPartDialog::Price()
 	catch (exception) {
 		return 0.0;
 	}
-};
+}

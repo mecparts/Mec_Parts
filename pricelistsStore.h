@@ -34,6 +34,7 @@ class PricelistsStore : public Gtk::TreeModel::ColumnRecord
 		Gtk::TreeModelColumn<string> m_description;
 		Gtk::TreeModelColumn<string> m_currencyName;
 		Gtk::TreeModelColumn<string> m_currencyCode;
+		Gtk::TreeModelColumn<gdouble> m_currencyRate;
 		Gtk::TreeModelColumn<gint64> m_num;
 		
 		PricelistsStore()
@@ -42,6 +43,7 @@ class PricelistsStore : public Gtk::TreeModel::ColumnRecord
 			add(m_description);
 			add(m_currencyName);
 			add(m_currencyCode);
+			add(m_currencyRate);
 			add(m_num);
 		}
 };

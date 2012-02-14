@@ -35,6 +35,7 @@
 #include "selectSetDialog.h"
 #include "newPartDialog.h"
 #include "newSetDialog.h"
+#include "newPricelistDialog.h"
 #include "sql.h"
 
 class MainWindow
@@ -46,7 +47,7 @@ class MainWindow
 		Gtk::Window *m_pWindow;
 
 		void PopulateCurrencies(string code,string name,double rate);
-		void PopulatePricelists(gint64 num,string description,string currencyName,string code);
+		void PopulatePricelists(gint64 num,string description,string currencyName,string code,double rate);
 		void PopulateParts(gint64 rowId,string partNumber,string description,string size,gdouble price,string notes,string pnPrefix,int pnDigits,string pnSuffix);
 		void PopulateSets(string setNumber,string description,int started,int ended,gint64 rowId);
 		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix);
@@ -77,16 +78,27 @@ class MainWindow
 		void on_currency_use_toggled(const Glib::ustring &pathStr);
 		Gtk::TreeView *m_pCurrenciesView;
 		Glib::RefPtr<Gtk::ListStore> m_pCurrenciesStore;
-		string m_currencyCode;
 		CurrenciesStore m_currenciesStore;
 		string m_localeCurrencyCode;
+		string m_baseCurrencyCode;
+		double m_baseCurrencyRate;
+		int m_baseCurrencyDigits;
 		
 		void PricelistsSetup();
+		void RefreshPriceLists();
+		void on_pricelists_selection_changed_event();
+		void on_pricelists_button_pressed(GdkEventButton *pEvent);
+		void on_pricelistsNewPricelist_activated_event();
+		void on_pricelistsDeletePricelist_activated_event();
 		void on_pricelist_use_toggled(const Glib::ustring &pathStr);
 		Gtk::TreeView *m_pPricelistsView;
 		Glib::RefPtr<Gtk::ListStore> m_pPricelistsStore;
 		gint64 m_pricelistNumber;
+		double m_pricelistCurrencyRate;
 		PricelistsStore m_pricelistsStore;
+		Gtk::Menu *m_pPricelistsContextMenu;
+		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
+		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
 		
 		Gtk::TreeView *m_pCollectionView;
 		CollectionStore m_collectionStore;
@@ -104,6 +116,7 @@ class MainWindow
 		string m_collectionPartDescription;
 		int m_collectionPartsCount;
 		double m_collectionCost;
+		int m_collectionViewPriceColumnIndex;
 		void CollectionSetup();
 		void on_collection_set_combobox_changed_event();
 		void on_collection_count_edited(Glib::ustring pathStr, Glib::ustring text);
@@ -142,6 +155,7 @@ class MainWindow
 		Gtk::MenuItem *m_pPartsUnfilterSetsMenuItem;
 		string m_partsPartNumber;
 		string m_partsPartDescription;
+		int m_partsViewPriceColumnIndex;
 
 		Gtk::TreeView *m_pSetsView;
 		SetsStore m_setsStore;
@@ -168,10 +182,12 @@ class MainWindow
 		Gtk::MenuItem *m_pNeededViewPartMenuItem;
 		int m_neededPartsCount;
 		double m_neededCost;
+		int m_neededViewPriceColumnIndex;
 		void NeededSetup();
 		void on_neededComboBox_changed_event();
 		void on_needed_button_pressed(GdkEventButton *pEvent);
 		void on_neededViewPart_activated_event();
+		void FillNeeded0();
 		void FillNeeded(string haveNum,string wantNum);
 		
 		SelectPartsDialog *m_pSelectPartsDialog;
@@ -184,6 +200,7 @@ class MainWindow
 		
 		NewSetDialog *m_pNewSetDialog;
 		
+		NewPricelistDialog *m_pNewPricelistDialog;
 };
 
 #endif // _MAINWINDOW_H
