@@ -37,10 +37,10 @@ NewPricelistDialog::NewPricelistDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 
 	GET_WIDGET(pRefBuilder,"newPricelistErrorLabel",m_pNewPricelistErrorLabel)
 	GET_WIDGET(pRefBuilder,"newPricelistOkButton",m_pNewPricelistOkButton)
-	GET_WIDGET(pRefBuilder,"descriptionEntry",m_pNewPricelistDescription)
+	GET_WIDGET(pRefBuilder,"pricelistDescriptionEntry",m_pNewPricelistDescription)
 	m_pNewPricelistDescription->signal_changed().connect(sigc::mem_fun(*this,&NewPricelistDialog::on_input_changed_event));
 	GET_WIDGET(pRefBuilder,"pricelistCurrencyComboBox",m_pNewPricelistCurrencyComboBox);
-	m_pNewPricelistCurrencyComboBox->pack_start(m_pricelistsStore.m_description);
+	m_pNewPricelistCurrencyComboBox->pack_start(m_currenciesStore.m_name);
 	m_pNewPricelistCurrencyComboBox->signal_changed().connect(sigc::mem_fun(*this,&NewPricelistDialog::on_input_changed_event));
 }
 
@@ -74,8 +74,34 @@ string NewPricelistDialog::CurrencyCode()
   if(iter) {
     Gtk::TreeModel::Row row = *iter;
     if(row) {
-			code = row[m_pricelistsStore.m_currencyCode];
+			code = row[m_currenciesStore.m_code];
 		}
 	}
 	return code;
+}
+
+string NewPricelistDialog::CurrencyName()
+{
+	string name = "";
+  Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
+  if(iter) {
+    Gtk::TreeModel::Row row = *iter;
+    if(row) {
+			name = row[m_currenciesStore.m_name];
+		}
+	}
+	return name;
+}
+
+double NewPricelistDialog::CurrencyRate()
+{
+	double rate = 1;
+  Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
+  if(iter) {
+    Gtk::TreeModel::Row row = *iter;
+    if(row) {
+			rate = row[m_currenciesStore.m_rate];
+		}
+	}
+	return rate;
 }

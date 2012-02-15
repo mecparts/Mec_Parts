@@ -1,5 +1,5 @@
 /*
- * newPricelistDialog.h
+ * toMoveStore.h
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -19,38 +19,33 @@
  * MA 02110-1301, USA.
  */
 
-#ifndef _NEWPRICELISTDIALOG_H
-#define _NEWPRICELISTDIALOG_H
+#ifndef _TOMOVESTORE_H
+#define _TOMOVESTORE_H
 
 #include "mecparts.h"
-#include "currenciesStore.h"
 
 using namespace std;
 
-class NewPricelistDialog
+//Tree model columns:
+class ToMakeStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
-		NewPricelistDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
-		virtual ~NewPricelistDialog();
-		
-		Gtk::Dialog *m_pDialog;
-	
-		void ErrorLabel(string text) { m_pNewPricelistErrorLabel->set_text(text); }
-		string Description() { return m_pNewPricelistDescription->get_text(); };
-		string CurrencyCode();
-		string CurrencyName();
-		double CurrencyRate();
-		void ClearInput();
-		
-	private:
-		bool on_delete_event(GdkEventAny *e);
-		void on_input_changed_event();
-		Gtk::Label *m_pNewPricelistErrorLabel;
-		Gtk::Entry *m_pNewPricelistDescription;
-		Gtk::ComboBox *m_pNewPricelistCurrencyComboBox;
-		Gtk::Button *m_pNewPricelistOkButton;
-		CurrenciesStore m_currenciesStore;
 
+		Gtk::TreeModelColumn<string> m_partNumber;
+		Gtk::TreeModelColumn<string> m_description;
+		Gtk::TreeModelColumn<string> m_size;
+		Gtk::TreeModelColumn<guint> m_count;
+		Gtk::TreeModelColumn<gdouble> m_price;
+		Gtk::TreeModelColumn<gdouble> m_total;
+
+		ToMakeStore()
+		{
+			add(m_partNumber);
+			add(m_description);
+			add(m_size);
+			add(m_count);
+			add(m_price);
+			add(m_total);
+		}
 };
-
-#endif // _NEWPRICELISTDIALOG_H
+#endif // TOMOVESTORE_H

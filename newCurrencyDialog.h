@@ -1,5 +1,5 @@
 /*
- * newPricelistDialog.h
+ * newCurrencyDialog.h
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -19,38 +19,39 @@
  * MA 02110-1301, USA.
  */
 
-#ifndef _NEWPRICELISTDIALOG_H
-#define _NEWPRICELISTDIALOG_H
+#ifndef _NEWCURRENCYDIALOG_H
+#define _NEWCURRENCYDIALOG_H
 
 #include "mecparts.h"
 #include "currenciesStore.h"
 
 using namespace std;
 
-class NewPricelistDialog
+class NewCurrencyDialog
 {
 	public:
-		NewPricelistDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
-		virtual ~NewPricelistDialog();
+		NewCurrencyDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
+		virtual ~NewCurrencyDialog();
 		
 		Gtk::Dialog *m_pDialog;
 	
-		void ErrorLabel(string text) { m_pNewPricelistErrorLabel->set_text(text); }
-		string Description() { return m_pNewPricelistDescription->get_text(); };
-		string CurrencyCode();
-		string CurrencyName();
-		double CurrencyRate();
+		void ErrorLabel(string text) { m_pNewCurrencyErrorLabel->set_text(text); }
+		string Description() { return m_pNewCurrencyDescription->get_text(); }
+		string CurrencyCode() { return m_pNewCurrencyCode->get_text(); }
+		double CurrencyRate() { return atof(m_pNewCurrencyRate->get_text().c_str()); }
 		void ClearInput();
 		
 	private:
 		bool on_delete_event(GdkEventAny *e);
+		void on_code_changed_event();
 		void on_input_changed_event();
-		Gtk::Label *m_pNewPricelistErrorLabel;
-		Gtk::Entry *m_pNewPricelistDescription;
-		Gtk::ComboBox *m_pNewPricelistCurrencyComboBox;
-		Gtk::Button *m_pNewPricelistOkButton;
+		Gtk::Label *m_pNewCurrencyErrorLabel;
+		Gtk::Entry *m_pNewCurrencyDescription;
+		Gtk::Entry *m_pNewCurrencyCode;
+		Gtk::Entry *m_pNewCurrencyRate;
+		Gtk::Button *m_pNewCurrencyOkButton;
 		CurrenciesStore m_currenciesStore;
 
 };
 
-#endif // _NEWPRICELISTDIALOG_H
+#endif // _NEWCURRENCYDIALOG_H

@@ -41,10 +41,10 @@ NewPartDialog::NewPartDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 	GET_WIDGET(pRefBuilder,"partNumberEntry",m_pNewPartNumber)
 	m_pNewPartNumber->signal_changed().connect(sigc::mem_fun(*this,&NewPartDialog::on_partNum_changed_event));
 
-	GET_WIDGET(pRefBuilder,"descriptionEntry",m_pNewPartDescription)
-	GET_WIDGET(pRefBuilder,"sizeEntry",m_pNewPartSize)
-	GET_WIDGET(pRefBuilder,"priceEntry",m_pNewPartPrice)
-	GET_WIDGET(pRefBuilder,"notesTextView",m_pNewPartNotes)
+	GET_WIDGET(pRefBuilder,"partDescriptionEntry",m_pNewPartDescription)
+	GET_WIDGET(pRefBuilder,"partSizeEntry",m_pNewPartSize)
+	GET_WIDGET(pRefBuilder,"partPriceEntry",m_pNewPartPrice)
+	GET_WIDGET(pRefBuilder,"partNotesTextView",m_pNewPartNotes)
 }
 
 NewPartDialog::~NewPartDialog()

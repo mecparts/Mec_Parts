@@ -25,6 +25,32 @@
 
 using namespace std;
 
+void signal_exception_handler()
+{
+	try {
+		throw;
+	}
+	catch( string ex ) {
+		cerr << ex << endl;
+	}
+	catch( char const *ex ) {
+		cerr << ex << endl;
+	}
+	catch( Glib::ustring ex ) {
+		cerr << ex << endl;
+	}
+	catch( Glib::KeyFileError ex ) {
+		cerr << "Glib::KeyFileError: " << ex.what() << endl;
+	}
+	catch( Glib::Error ex ) {
+		cerr << "Glib::Error: " << ex.what() << endl;
+	}
+	catch( exception &ex ) {
+		cerr << ex.what() << endl;
+	}
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc,char *argv[])
 {
 	Gtk::Main kit(argc,argv);
@@ -33,6 +59,7 @@ int main(int argc,char *argv[])
 		if( !Glib::thread_supported() ) {
 			Glib::thread_init();
 		}
+		Glib::add_exception_handler(sigc::ptr_fun(signal_exception_handler));
 		MainWindow mainWindow;
 		kit.run(*mainWindow.m_pWindow);
 	}

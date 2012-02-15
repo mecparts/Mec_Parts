@@ -27,7 +27,7 @@
 #include "collectionStore.h"
 #include "partsStore.h"
 #include "setsStore.h"
-#include "neededStore.h"
+#include "toMakeStore.h"
 #include "pricelistsStore.h"
 #include "currenciesStore.h"
 #include "config.h"
@@ -36,6 +36,7 @@
 #include "newPartDialog.h"
 #include "newSetDialog.h"
 #include "newPricelistDialog.h"
+#include "newCurrencyDialog.h"
 #include "sql.h"
 
 class MainWindow
@@ -52,7 +53,7 @@ class MainWindow
 		void PopulateSets(string setNumber,string description,int started,int ended,gint64 rowId);
 		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix);
 		void AddSetPartToPartsList(string partNumber,int count);
-		void PopulateNeeded(string partNumber,string description,string size,double price,int count,double total);
+		void PopulateToMake(string partNumber,string description,string size,double price,int count,double total);
 
 	private:
 		bool m_initialized;
@@ -76,18 +77,29 @@ class MainWindow
 		
 		void CurrenciesSetup();
 		void on_currency_use_toggled(const Glib::ustring &pathStr);
+		void on_currencies_button_pressed(GdkEventButton *pEvent);
+		void on_currenciesUpdateCurrency_activated_event();
+		void currenciesDownloaded(Glib::RefPtr<Gio::AsyncResult>& result);
+		void on_currenciesNewCurrency_activated_event();
+		void on_currenciesDeleteCurrency_activated_event();
+		void on_currencies_name_edited(Glib::ustring pathStr, Glib::ustring text);
+		void on_currencies_rate_edited(Glib::ustring pathStr, Glib::ustring text);
 		Gtk::TreeView *m_pCurrenciesView;
 		Glib::RefPtr<Gtk::ListStore> m_pCurrenciesStore;
 		CurrenciesStore m_currenciesStore;
 		string m_localeCurrencyCode;
 		string m_baseCurrencyCode;
 		double m_baseCurrencyRate;
-		int m_baseCurrencyDigits;
+		Gtk::Menu *m_pCurrenciesContextMenu;
+		Gtk::MenuItem *m_pCurrenciesUpdateCurrencyMenuItem;
+		Gtk::MenuItem *m_pCurrenciesNewCurrencyMenuItem;
+		Gtk::MenuItem *m_pCurrenciesDeleteCurrencyMenuItem;
 		
 		void PricelistsSetup();
 		void RefreshPriceLists();
-		void on_pricelists_selection_changed_event();
+		void on_pricelists_description_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_pricelists_button_pressed(GdkEventButton *pEvent);
+		void on_pricelistsImportPricelist_activated_event();
 		void on_pricelistsNewPricelist_activated_event();
 		void on_pricelistsDeletePricelist_activated_event();
 		void on_pricelist_use_toggled(const Glib::ustring &pathStr);
@@ -95,11 +107,14 @@ class MainWindow
 		Glib::RefPtr<Gtk::ListStore> m_pPricelistsStore;
 		gint64 m_pricelistNumber;
 		double m_pricelistCurrencyRate;
+		string m_pricelistCurrencyCode;
 		PricelistsStore m_pricelistsStore;
 		Gtk::Menu *m_pPricelistsContextMenu;
-		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
+		Gtk::MenuItem *m_pPricelistsImportPricelistMenuItem;
 		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
-		
+		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
+		Gtk::FileChooserDialog *m_pPricelistImportCsvDialog;
+
 		Gtk::TreeView *m_pCollectionView;
 		CollectionStore m_collectionStore;
 		Glib::RefPtr<Gtk::ListStore> m_pCollectionStore;
@@ -120,7 +135,6 @@ class MainWindow
 		void CollectionSetup();
 		void on_collection_set_combobox_changed_event();
 		void on_collection_count_edited(Glib::ustring pathStr, Glib::ustring text);
-		void on_collection_selection_changed_event();
 		void on_collection_button_pressed(GdkEventButton *pEvent);
 		void on_collectionViewPart_activated_event();
 		void on_collectionAddPart_activated_event();
@@ -139,7 +153,6 @@ class MainWindow
 		void on_parts_size_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_parts_notes_edited(Glib::ustring pathStr, Glib::ustring text);
-		void on_parts_selection_changed_event();
 		void on_parts_button_pressed(GdkEventButton *pEvent);
 		void on_partsViewPart_activated_event();
 		void on_partsNewPart_activated_event();
@@ -164,7 +177,6 @@ class MainWindow
 		void on_sets_description_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_sets_started_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_sets_ended_edited(Glib::ustring pathStr, Glib::ustring text);
-		void on_sets_selection_changed_event();
 		void on_sets_button_pressed(GdkEventButton *pEvent);
 		void on_setsNewSet_activated_event();
 		void on_setsDeleteSet_activated_event();
@@ -172,23 +184,23 @@ class MainWindow
 		Gtk::MenuItem *m_pSetsNewSetMenuItem;
 		Gtk::MenuItem *m_pSetsDeleteSetMenuItem;
 		
-		Gtk::TreeView *m_pNeededView;
-		NeededStore m_neededStore;
-		Glib::RefPtr<Gtk::ListStore> m_pNeededStore;
-		Gtk::Label *m_pNeededCost;
-		Gtk::ComboBox *m_pNeededHaveComboBox;
-		Gtk::ComboBox *m_pNeededWantComboBox;
-		Gtk::Menu *m_pNeededContextMenu;
-		Gtk::MenuItem *m_pNeededViewPartMenuItem;
-		int m_neededPartsCount;
-		double m_neededCost;
-		int m_neededViewPriceColumnIndex;
-		void NeededSetup();
-		void on_neededComboBox_changed_event();
-		void on_needed_button_pressed(GdkEventButton *pEvent);
-		void on_neededViewPart_activated_event();
-		void FillNeeded0();
-		void FillNeeded(string haveNum,string wantNum);
+		Gtk::TreeView *m_pToMakeView;
+		ToMakeStore m_toMakeStore;
+		Glib::RefPtr<Gtk::ListStore> m_pToMakeStore;
+		Gtk::Label *m_pToMakeCost;
+		Gtk::ComboBox *m_pToMakeHaveComboBox;
+		Gtk::ComboBox *m_pToMakeWantComboBox;
+		Gtk::Menu *m_pToMakeContextMenu;
+		Gtk::MenuItem *m_pToMakeViewPartMenuItem;
+		int m_toMakePartsCount;
+		double m_toMakeCost;
+		int m_toMakeViewPriceColumnIndex;
+		void ToMakeSetup();
+		void on_toMakeComboBox_changed_event();
+		void on_toMake_button_pressed(GdkEventButton *pEvent);
+		void on_toMakeViewPart_activated_event();
+		void FillToMake0();
+		void FillToMake(string haveNum,string wantNum);
 		
 		SelectPartsDialog *m_pSelectPartsDialog;
 		void AddPartCallback(const Gtk::TreeModel::iterator &iter);
@@ -201,6 +213,8 @@ class MainWindow
 		NewSetDialog *m_pNewSetDialog;
 		
 		NewPricelistDialog *m_pNewPricelistDialog;
+		
+		NewCurrencyDialog *m_pNewCurrencyDialog;
 };
 
 #endif // _MAINWINDOW_H

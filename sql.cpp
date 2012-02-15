@@ -49,7 +49,7 @@ void Sql::ExecSql(sqlite3* &db,const char *sql,int (*callback)(void *wnd,int arg
 	rc = sqlite3_exec(db, sql, callback, m_pWnd, &zErrMsg);
 	if( rc!=SQLITE_OK ) {
 		stringstream err;
-		err << "SQL error: " << zErrMsg << ' ' << sql;
+		err << "SQL error: " << zErrMsg << endl << "Command was: " << sql;
 		sqlite3_free(zErrMsg);
 		sqlite3_close(db);
 		throw err.str();
