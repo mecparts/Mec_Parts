@@ -1,5 +1,5 @@
 /*
- * toMoveStore.h
+ * toMakeStore.h
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -19,8 +19,8 @@
  * MA 02110-1301, USA.
  */
 
-#ifndef _TOMOVESTORE_H
-#define _TOMOVESTORE_H
+#ifndef _TOMAKESTORE_H
+#define _TOMAKESTORE_H
 
 #include "mecparts.h"
 
@@ -48,4 +48,4 @@ class ToMakeStore : public Gtk::TreeModel::ColumnRecord
 			add(m_total);
 		}
 };
-#endif // TOMOVESTORE_H
+#endif // TOMAKESTORE_H

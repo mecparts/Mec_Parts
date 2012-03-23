@@ -63,11 +63,6 @@ class MainWindow
 		map<string,int> m_partsList;
 		bool m_bSetsFiltered;
 		string SqlEscaped(string value);
-		Gtk::MenuItem *m_pNewDatabaseMenuItem;
-		Gtk::MenuItem *m_pOpenDatabaseMenuItem;
-		Gtk::MenuItem *m_pProgramQuitMenuItem;
-		Gtk::MenuItem *m_pAboutMenuItem;
-		void on_program_quit();
 		bool on_delete_event(GdkEventAny *e);
 		void DisplayPicture(string partNumber,string description,string size);
 		
@@ -140,6 +135,8 @@ class MainWindow
 		void on_collectionAddPart_activated_event();
 		void on_collectionDeletePart_activated_event();
 		void on_collectionAddSet_activated_event();
+		void on_collection_partNumber_clicked();
+		void on_collection_description_clicked();
 		void AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool updateIfFound);
 		void CalculateCollectionTotals();
 		void FillCollection();
@@ -159,6 +156,8 @@ class MainWindow
 		void on_partsDeletePart_activated_event();
 		void on_partsFilterSets_activated_event();
 		void on_partsUnfilterSets_activated_event();
+		void on_parts_partNumber_clicked();
+		void on_parts_description_clicked();
 		void UpdateParts(string num,string field);
 		Gtk::Menu *m_pPartsContextMenu;
 		Gtk::MenuItem *m_pPartsViewPartMenuItem;
@@ -180,6 +179,8 @@ class MainWindow
 		void on_sets_button_pressed(GdkEventButton *pEvent);
 		void on_setsNewSet_activated_event();
 		void on_setsDeleteSet_activated_event();
+		void on_sets_setNumber_clicked();
+		void on_sets_description_clicked();
 		Gtk::Menu *m_pSetsContextMenu;
 		Gtk::MenuItem *m_pSetsNewSetMenuItem;
 		Gtk::MenuItem *m_pSetsDeleteSetMenuItem;
@@ -199,6 +200,8 @@ class MainWindow
 		void on_toMakeComboBox_changed_event();
 		void on_toMake_button_pressed(GdkEventButton *pEvent);
 		void on_toMakeViewPart_activated_event();
+		void on_toMake_partNumber_clicked();
+		void on_toMake_description_clicked();
 		void FillToMake0();
 		void FillToMake(string haveNum,string wantNum);
 		

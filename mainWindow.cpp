@@ -50,8 +50,6 @@ MainWindow::MainWindow() :
 		m_refBuilder(NULL),
 		m_pSql(NULL),
 		m_bSetsFiltered(false),
-		m_pNewDatabaseMenuItem(NULL),
-		m_pOpenDatabaseMenuItem(NULL),
 		m_pProgramQuitMenuItem(NULL),
 		m_pAboutMenuItem(NULL),
 		m_pCurrenciesView(NULL),
@@ -145,18 +143,6 @@ MainWindow::MainWindow() :
 	GET_WIDGET(m_refBuilder,"mainWindow",m_pWindow)
 	m_pWindow->signal_delete_event().connect(sigc::mem_fun(*this,&MainWindow::on_delete_event));
 
-	GET_WIDGET(m_refBuilder,"newDatabaseMenuItem",m_pNewDatabaseMenuItem);
-	m_pNewDatabaseMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_new_database));
-
-	GET_WIDGET(m_refBuilder,"openDatabaseMenuItem",m_pOpenDatabaseMenuItem);
-	m_pOpenDatabaseMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_open_database));
-
-	GET_WIDGET(m_refBuilder,"programQuitMenuItem",m_pProgramQuitMenuItem);
-	m_pProgramQuitMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_program_quit));
-
-	GET_WIDGET(m_refBuilder,"aboutMenuItem",m_pAboutMenuItem);
-	m_pAboutMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_about));
-
 	m_cfg.load_cfg();
 	int w,h;
 	m_cfg.get_mainWindow_size(w,h);
@@ -174,6 +160,21 @@ MainWindow::MainWindow() :
 	SetsSetup();
 	CollectionSetup();
 	ToMakeSetup();
+
+	m_pSelectPartsDialog = new SelectPartsDialog(m_refBuilder,&m_cfg);
+	if( !m_pSelectPartsDialog ) {
+		throw "Could not get selectPartsDialog";
+	}
+		
+	m_pSelectSetDialog = new SelectSetDialog(m_refBuilder,&m_cfg);
+	if( !m_pSelectSetDialog ) {
+		throw "Could not get selectSetDialog";
+	}
+
+	m_pNewPartDialog = new NewPartDialog(m_refBuilder);
+	if( !m_pNewPartDialog ) {
+		throw "Could not get newPartDialog";
+	}
 
 	m_initialized = true;
 
@@ -206,14 +207,6 @@ bool MainWindow::on_delete_event(GdkEventAny *e)
 void MainWindow::on_program_quit()
 {
 	Gtk::Main::quit();
-}
-
-void MainWindow::on_new_database()
-{
-}
-
-void MainWindow::on_open_database()
-{
 }
 
 void MainWindow::on_about()
@@ -270,6 +263,9 @@ void MainWindow::CollectionSetup()
 
 	GET_WIDGET(m_refBuilder,"collectionAddSetMenuItem",m_pCollectionAddSetMenuItem)
 	m_pCollectionAddSetMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_collectionAddSet_activated_event));
+
+	m_pCollectionView->get_column(m_collectionStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_partNumber_clicked));
+	m_pCollectionView->get_column(m_collectionStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_description_clicked));
 }
 
 void MainWindow::on_collection_button_pressed(GdkEventButton *pEvent)
@@ -519,6 +515,18 @@ void MainWindow::PopulateCollection(gint64 rowId,string partNumber,string descri
 	m_collectionCost += total;
 }
 
+void MainWindow::on_collection_partNumber_clicked()
+{
+	m_pCollectionView->set_search_column(m_collectionStore.m_partNumber.index());
+	m_pCollectionView->grab_focus();
+}
+
+void MainWindow::on_collection_description_clicked()
+{
+	m_pCollectionView->set_search_column(m_collectionStore.m_description.index());
+	m_pCollectionView->grab_focus();
+}
+
 void MainWindow::on_collection_count_edited(Glib::ustring pathStr, Glib::ustring text)
 {
 	Gtk::TreeIter iter = m_pCollectionStore->get_iter(pathStr);
@@ -578,21 +586,9 @@ void MainWindow::PartsSetup()
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_notes_edited));
 
   m_pPartsView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_button_pressed));
-		
-	m_pSelectPartsDialog = new SelectPartsDialog(m_refBuilder,&m_cfg);
-	if( !m_pSelectPartsDialog ) {
-		throw "Could not get selectPartsDialog";
-	}
-		
-	m_pSelectSetDialog = new SelectSetDialog(m_refBuilder,&m_cfg);
-	if( !m_pSelectSetDialog ) {
-		throw "Could not get selectSetDialog";
-	}
 
-	m_pNewPartDialog = new NewPartDialog(m_refBuilder);
-	if( !m_pNewPartDialog ) {
-		throw "Could not get newPartDialog";
-	}
+	m_pPartsView->get_column(m_partsStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_partNumber_clicked));
+	m_pPartsView->get_column(m_partsStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_description_clicked));
 
 	GET_WIDGET(m_refBuilder,"partsContextMenu",m_pPartsContextMenu)
 	GET_WIDGET(m_refBuilder,"partsViewPartMenuItem",m_pPartsViewPartMenuItem)
@@ -611,6 +607,18 @@ void MainWindow::PartsSetup()
 	m_pPartsUnfilterSetsMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_partsUnfilterSets_activated_event));
 
 	FillParts();
+}
+
+void MainWindow::on_parts_partNumber_clicked()
+{
+	m_pPartsView->set_search_column(m_partsStore.m_partNumber.index());
+	m_pPartsView->grab_focus();
+}
+
+void MainWindow::on_parts_description_clicked()
+{
+	m_pPartsView->set_search_column(m_partsStore.m_description.index());
+	m_pPartsView->grab_focus();
 }
 
 void MainWindow::FillParts()
@@ -788,7 +796,7 @@ void MainWindow::on_partsNewPart_activated_event()
 	m_pNewPartDialog->ClearInput();
 	while( true ) {
 		if( m_pNewPartDialog->m_pDialog->run() == Gtk::RESPONSE_OK ) {
-			boost::regex pnRegex("([A-Za-z]*?)([0-9]*?)([A-Za-z0-9]*?)");
+			boost::regex pnRegex("([A-Za-z]*+)([0-9]*+)([A-Za-z0-9]*+)");
 			boost::smatch matches;
 			string new_partNum = m_pNewPartDialog->PartNumber();
 			if( !boost::regex_match(new_partNum,matches,pnRegex) || matches.size()!=4) {
@@ -797,6 +805,8 @@ void MainWindow::on_partsNewPart_activated_event()
 			string new_pnPrefix = matches[1];
 			int new_pnDigits = atoi(matches[2].str().c_str());
 			string new_pnSuffix = matches[3];
+//			cout << '[' << new_pnPrefix << "] [" << new_pnDigits << "] [" << new_pnSuffix << ']' << endl;
+//			return;
 			Gtk::TreeModel::Row newRow;
 			bool alreadyExists = false;
 			bool inserted = false;
@@ -824,15 +834,14 @@ void MainWindow::on_partsNewPart_activated_event()
 				}
 				stringstream sql;
 				sql <<
-					"INSERT INTO parts(pnPrefix,pnDigits,pnSuffix,num,description,size,notes,price) VALUES ("
+					"INSERT INTO parts(pnPrefix,pnDigits,pnSuffix,num,description,size,notes) VALUES ("
 					<< "'" << m_pSql->Escape(new_pnPrefix) << "',"
 					<< new_pnDigits << ","
 					<< "'" << m_pSql->Escape(new_pnSuffix) << "'," 
 					<< "'" << new_partNum << "',"
 					<< "'" << m_pNewPartDialog->Description() << "',"
 					<< "'" << m_pNewPartDialog->Size() << "',"
-					<< "'" << 					m_pNewPartDialog->Notes() << "'," <<
-					m_pNewPartDialog->Price() << ")";
+					<< "'" << m_pNewPartDialog->Notes() << "')";
 				newRow[m_partsStore.m_rowId] = m_pSql->ExecInsert(&sql);
 				newRow[m_partsStore.m_partNumber] = new_partNum;
 				newRow[m_partsStore.m_pnPrefix] = new_pnPrefix;
@@ -842,6 +851,13 @@ void MainWindow::on_partsNewPart_activated_event()
 				newRow[m_partsStore.m_size] = m_pNewPartDialog->Size();
 				newRow[m_partsStore.m_notes] = m_pNewPartDialog->Notes();
 				newRow[m_partsStore.m_price] = m_pNewPartDialog->Price();
+				sql.str("");
+				sql
+					<< "INSERT INTO part_prices(pricelist_num,part_num,price) VALUES ("
+					<< m_pricelistNumber << ","
+					<< "'" << m_pSql->Escape(new_partNum) << "',"
+					<< m_pNewPartDialog->Price()/m_baseCurrencyRate*m_pricelistCurrencyRate << ")";
+				m_pSql->ExecInsert(&sql);
 				break;
 			}
 		} else {
@@ -863,7 +879,10 @@ void MainWindow::on_partsDeletePart_activated_event()
 		if( areYouSure.run() == Gtk::RESPONSE_OK ) {
 			m_pPartsStore->erase(iter);
 			stringstream sql;
-			sql << "DELETE FROM set_parts WHERE part_num='" << m_pSql->Escape(partNum) << "'; DELETE FROM parts WHERE num='" << m_pSql->Escape(partNum) << "'";
+			sql 
+				<< "DELETE FROM set_parts WHERE part_num='" << m_pSql->Escape(partNum) << "'; "
+				<< "DELETE FROM part_prices WHERE part_num='" << m_pSql->Escape(partNum) << "'; "
+				<< "DELETE FROM parts WHERE num='" << m_pSql->Escape(partNum) << "'";
 			m_pSql->ExecNonQuery(&sql);
 			FillCollection();
 			FillToMake0();
@@ -927,6 +946,9 @@ void MainWindow::ToMakeSetup()
 		
 	GET_WIDGET(m_refBuilder,"toMakeViewPartMenuItem",m_pToMakeViewPartMenuItem)
 	m_pToMakeViewPartMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_toMakeViewPart_activated_event));
+
+	m_pToMakeView->get_column(m_toMakeStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_partNumber_clicked));
+	m_pToMakeView->get_column(m_toMakeStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_description_clicked));
 }
 
 void MainWindow::on_toMake_button_pressed(GdkEventButton *pEvent)
@@ -951,6 +973,19 @@ void MainWindow::on_toMakeViewPart_activated_event()
 		DisplayPicture(partNumber,description,size);
 	}
 }
+
+void MainWindow::on_toMake_partNumber_clicked()
+{
+	m_pToMakeView->set_search_column(m_toMakeStore.m_partNumber.index());
+	m_pToMakeView->grab_focus();
+}
+
+void MainWindow::on_toMake_description_clicked()
+{
+	m_pToMakeView->set_search_column(m_toMakeStore.m_description.index());
+	m_pToMakeView->grab_focus();
+}
+
 
 void MainWindow::FillToMake0()
 {
@@ -1042,6 +1077,9 @@ void MainWindow::SetsSetup()
 
 	GET_WIDGET(m_refBuilder,"setsDeleteSetMenuItem",m_pSetsDeleteSetMenuItem)
 	m_pSetsDeleteSetMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_setsDeleteSet_activated_event));
+
+	m_pSetsView->get_column(m_setsStore.m_setNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_setNumber_clicked));
+	m_pSetsView->get_column(m_setsStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_description_clicked));
 
 	m_pNewSetDialog = new NewSetDialog(m_refBuilder);
 	if( !m_pNewSetDialog ) {
@@ -1191,6 +1229,19 @@ void MainWindow::on_setsDeleteSet_activated_event()
 		}
 	}
 }
+
+void MainWindow::on_sets_setNumber_clicked()
+{
+	m_pSetsView->set_search_column(m_setsStore.m_setNumber.index());
+	m_pSetsView->grab_focus();
+}
+
+void MainWindow::on_sets_description_clicked()
+{
+	m_pSetsView->set_search_column(m_setsStore.m_description.index());
+	m_pSetsView->grab_focus();
+}
+
 #endif
 #ifndef _Pricelists_Routines
 void MainWindow::PricelistsSetup()
@@ -1728,12 +1779,27 @@ void MainWindow::on_currencies_rate_edited(Glib::ustring pathStr, Glib::ustring 
 	// if we changed the rate of the base currency, update it
 	if( m_baseCurrencyCode == code ) {
 		m_baseCurrencyRate = rate;
-	} 
+	}
 	stringstream sql;
 	sql
 		<< "UPDATE currencies SET rate=" << rate 
 		<< " WHERE code='" << m_pSql->Escape(code) << "'";
 	m_pSql->ExecUpdate(&sql);
+	// if the current pricelist uses the currency code we just changed
+	// the exchange rate on, update the rate in the store and in our
+	// member variable
+	if( code == m_pricelistCurrencyCode ) {
+		Gtk::TreeModel::Children rows = m_pPricelistsStore->children();
+		for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
+			Gtk::TreeModel::Row row = *r;
+			gint64 pricelistNum = row[m_pricelistsStore.m_num];
+			if( m_pricelistNumber == pricelistNum ) {
+				m_pricelistCurrencyRate = rate;
+				row[m_pricelistsStore.m_currencyRate] = rate;
+				break;
+			}
+		}
+	}
 	RefreshPriceLists();
 }
 #endif
