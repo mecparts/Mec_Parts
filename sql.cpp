@@ -21,6 +21,8 @@
 
 #include "sql.h"
 #include <sstream>
+#include <iomanip>
+#include <time.h>
 
 using namespace std;
 
@@ -38,8 +40,15 @@ void Sql::ExecSql(sqlite3* &db,const char *sql,int (*callback)(void *wnd,int arg
 {
 	char *zErrMsg = NULL;
 	int rc;
+
+#ifdef DEBUG	
+	time_t rawtime;
+	struct tm *ti;
+	time(&rawtime);
+	ti = localtime(&rawtime);
 	
-	//cout << sql << endl;
+	cout << setw(2) << ti->tm_hour << ':' << setfill('0') << setw(2) << ti->tm_min << ':' << setw(2) << ti->tm_sec << "  " << sql << endl;
+#endif
 	rc = sqlite3_open(m_dbName.c_str(), &db);
 	if( rc ) {
 		stringstream err;

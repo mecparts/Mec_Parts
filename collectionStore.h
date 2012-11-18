@@ -41,6 +41,7 @@ class CollectionStore : public Gtk::TreeModel::ColumnRecord
 		Gtk::TreeModelColumn<string> m_pnPrefix;
 		Gtk::TreeModelColumn<guint> m_pnDigits;
 		Gtk::TreeModelColumn<string> m_pnSuffix;
+		Gtk::TreeModelColumn<string> m_notes;
 
 		CollectionStore()
 		{
@@ -54,6 +55,7 @@ class CollectionStore : public Gtk::TreeModel::ColumnRecord
 			add(m_pnPrefix);
 			add(m_pnDigits);
 			add(m_pnSuffix);
+			add(m_notes);
 		}
 };
 #endif

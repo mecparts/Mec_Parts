@@ -37,6 +37,7 @@ class ToMakeStore : public Gtk::TreeModel::ColumnRecord
 		Gtk::TreeModelColumn<guint> m_count;
 		Gtk::TreeModelColumn<gdouble> m_price;
 		Gtk::TreeModelColumn<gdouble> m_total;
+		Gtk::TreeModelColumn<string> m_notes;
 
 		ToMakeStore()
 		{
@@ -46,6 +47,7 @@ class ToMakeStore : public Gtk::TreeModel::ColumnRecord
 			add(m_count);
 			add(m_price);
 			add(m_total);
+			add(m_notes);
 		}
 };
 #endif // TOMAKESTORE_H

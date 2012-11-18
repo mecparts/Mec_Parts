@@ -30,17 +30,21 @@ using namespace std;
 CsvReader::CsvReader(string csvFilename)
 {
 	m_csvFilename = csvFilename;
+	m_ifs.open(m_csvFilename.c_str(),ifstream::in);
 }
 
 CsvReader::~CsvReader()
 {
+	if( m_ifs.is_open() ) {
+		m_ifs.close();
+	}
 }
 
 string CsvReader::Strip(string field)
 {
 	string output=field;
 	char quote=0;
-	
+
 	if( output.length()>1 ) {
 		if( output[0]=='"' && output[output.length()-1]=='"' ) {
 			quote = '"';
@@ -102,17 +106,19 @@ void CsvReader::Parse(string line,vector<string> &fields)
 	}
 }
 
-void CsvReader::Parse() 
+bool CsvReader::Parse(vector<string> &fields)
 {
-	ifstream ifs(m_csvFilename.c_str(),ifstream::in);
 	string line;
-	vector<string> fields;
-	while( ifs.good() ) {
-		getline(ifs,line);
-		Parse(line,fields);
-		cout << fields.size() << ": " << line << endl;
-		for( unsigned i=0; i<fields.size(); ++i ) {
-			cout << "  " << fields[i] << endl;
+	if( m_ifs.is_open() && m_ifs.good() ) {
+		getline(m_ifs,line);
+		size_t eol = line.find_last_of('\n');
+		if( eol != string::npos ) {
+			line.erase(eol);
 		}
+		Parse(line,fields);
+		return true;
+	} else {
+		m_ifs.close();
+		return false;
 	}
 }

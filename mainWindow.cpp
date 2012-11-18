@@ -26,11 +26,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <locale.h>
+#include <time.h>
 #include <boost/regex.hpp>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 #include "mainWindow.h"
+#include "csvReader.h"
 
 #ifndef _Callback_Definitions
 static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName);
@@ -50,8 +52,6 @@ MainWindow::MainWindow() :
 		m_refBuilder(NULL),
 		m_pSql(NULL),
 		m_bSetsFiltered(false),
-		m_pProgramQuitMenuItem(NULL),
-		m_pAboutMenuItem(NULL),
 		m_pCurrenciesView(NULL),
 		m_pCurrenciesStore(NULL),
 		m_localeCurrencyCode(""),
@@ -67,7 +67,7 @@ MainWindow::MainWindow() :
 		m_pricelistCurrencyRate(0),
 		m_pricelistCurrencyCode(""),
 		m_pPricelistsContextMenu(NULL),
-		m_pPricelistsImportPricelistMenuItem(NULL),
+		m_pPricelistsImportPricesMenuItem(NULL),
 		m_pPricelistsNewPricelistMenuItem(NULL),
 		m_pPricelistsDeletePricelistMenuItem(NULL),
 		m_pPricelistImportCsvDialog(NULL),
@@ -204,20 +204,31 @@ bool MainWindow::on_delete_event(GdkEventAny *e)
   return false;
 }
 
-void MainWindow::on_program_quit()
+void MainWindow::DisplayPicture(string partNumber,string description,string size,string notes)
 {
-	Gtk::Main::quit();
-}
-
-void MainWindow::on_about()
-{
-	Gtk::AboutDialog *pAbout = NULL;
-	GET_WIDGET(m_refBuilder,"aboutDialog",pAbout);
-	if( pAbout->run() == Gtk::RESPONSE_OK ) {
-		pAbout->hide();
-	} else {
-		pAbout->hide();
+	Gtk::MessageDialog pictureDialog(*m_pWindow,partNumber,false,Gtk::MESSAGE_INFO,Gtk::BUTTONS_OK);
+	pictureDialog.set_secondary_text(description+", "+size+"\n"+notes);
+	Gtk::Image *pImage = NULL;
+	string imageExtensions[] = {".jpg",".gif",".png",".bmp",".jpeg",".pcx",".tif",".tiff"};
+	int numImageExtensions = sizeof(imageExtensions)/sizeof(string);
+	bool foundFile = false;
+	string fileName;
+	for( int i=0; i<numImageExtensions; ++i ) {
+		fileName = "Pictures/"+partNumber+imageExtensions[i];
+		if( Glib::file_test(fileName,Glib::FILE_TEST_EXISTS) ) {
+			pImage = new Gtk::Image(Gdk::Pixbuf::create_from_file(fileName, 300, 300, true));
+			pictureDialog.set_image(*pImage);
+			foundFile = true;
+			break;
+		}
 	}
+	if( !foundFile ) {
+		pImage = new Gtk::Image(Gtk::Stock::MISSING_IMAGE,Gtk::ICON_SIZE_DIALOG);
+		pictureDialog.set_image(*pImage);
+	}
+	pImage->show();
+	pictureDialog.run();
+	delete pImage;
 }
 #endif
 #ifndef _Collection_Routines
@@ -314,7 +325,8 @@ void MainWindow::on_collectionViewPart_activated_event()
 		string partNumber = row[m_collectionStore.m_partNumber];
 		string description = row[m_collectionStore.m_description];
 		string size = row[m_collectionStore.m_size];
-		DisplayPicture(partNumber,description,size);
+		string notes = row[m_collectionStore.m_notes];
+		DisplayPicture(partNumber,description,size,notes);
 	}
 }
 
@@ -365,7 +377,7 @@ void MainWindow::on_collectionAddSet_activated_event()
 		m_pSelectSetDialog->m_pDialog->hide();
 		Glib::RefPtr<Gdk::Window> refWindow = m_pWindow->get_window();
 		if( refWindow ) {
-			Gdk::Cursor waitCursor(Gdk::WATCH);
+			Glib::RefPtr<Gdk::Cursor> waitCursor = Gdk::Cursor::create(Gdk::WATCH);
 			refWindow->set_cursor(waitCursor);
 			Gdk::flush();
 			while(Gtk::Main::events_pending()) {
@@ -487,7 +499,7 @@ void MainWindow::FillCollection()
 	stringstream cmd;
 	cmd 
 		<< "SELECT p.rowid,p.num,p.description,p.size,sp.count,IFNULL(pp.price,0) price,"
-		<< "IFNULL(pp.price,0)*sp.count total,p.pnPrefix a,p.pnDigits b,p.pnSuffix c "
+		<< "IFNULL(pp.price,0)*sp.count total,p.pnPrefix a,p.pnDigits b,p.pnSuffix c,p.notes "
 		<< "FROM parts p JOIN set_parts sp ON p.num=sp.part_num AND sp.set_num='" << m_collectionNumber <<"' "
 		<< "LEFT OUTER JOIN v_part_prices pp ON p.num=pp.part_num AND pp.pricelist_num=" << m_pricelistNumber
 		<< " ORDER BY p.pnPrefix,p.pnDigits,p.pnSuffix";
@@ -498,7 +510,7 @@ void MainWindow::FillCollection()
 	m_pCollectionCountCost->set_text(temp.str());
 }
 
-void MainWindow::PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix)
+void MainWindow::PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix,string notes)
 {
 	Gtk::TreeModel::Row row = *(m_pCollectionStore->append());
 	row[m_collectionStore.m_rowId] = rowId;
@@ -511,6 +523,7 @@ void MainWindow::PopulateCollection(gint64 rowId,string partNumber,string descri
 	row[m_collectionStore.m_pnPrefix] = pnPrefix;
 	row[m_collectionStore.m_pnDigits] = pnDigits;
 	row[m_collectionStore.m_pnSuffix] = pnSuffix;
+	row[m_collectionStore.m_notes] = notes;
 	m_collectionPartsCount += count;
 	m_collectionCost += total;
 }
@@ -649,6 +662,21 @@ void MainWindow::PopulateParts(gint64 rowId,string partNumber,string description
 	row[m_partsStore.m_pnSuffix] = pnSuffix;
 }
 
+bool MainWindow::PartExists(string partNumber)
+{
+	bool exists = false;
+	Gtk::TreeModel::Children partRows = m_pPartsStore->children();
+	for( Gtk::TreeModel::iterator r = partRows.begin(); r!=partRows.end(); ++r ) {
+		Gtk::TreeModel::Row partRow = *r;
+		string partRowNumber = partRow[m_partsStore.m_partNumber];
+		if( partRowNumber == partNumber ) {
+			exists = true;
+			break;
+		}
+	}
+	return exists;
+}
+
 #ifndef _Parts_Fields_Edited
 void MainWindow::on_parts_description_edited(Glib::ustring pathStr, Glib::ustring text)
 {
@@ -760,35 +788,9 @@ void MainWindow::on_partsViewPart_activated_event()
 		string partNumber = row[m_partsStore.m_partNumber];
 		string description = row[m_partsStore.m_description];
 		string size = row[m_partsStore.m_size];
-		DisplayPicture(partNumber,description,size);
+		string notes = row[m_partsStore.m_notes];
+		DisplayPicture(partNumber,description,size,notes);
 	}
-}
-
-void MainWindow::DisplayPicture(string partNumber,string description,string size)
-{
-	Gtk::MessageDialog pictureDialog(*m_pWindow,partNumber,false,Gtk::MESSAGE_INFO,Gtk::BUTTONS_OK);
-	pictureDialog.set_secondary_text(description+", "+size);
-	Gtk::Image *pImage = NULL;
-	string imageExtensions[] = {".jpg",".png",".gif",".bmp",".jpeg",".pcx",".tif",".tiff"};
-	int numImageExtensions = sizeof(imageExtensions)/sizeof(string);
-	bool foundFile = false;
-	string fileName;
-	for( int i=0; i<numImageExtensions; ++i ) {
-		fileName = "Pictures/"+partNumber+imageExtensions[i];
-		if( Glib::file_test(fileName,Glib::FILE_TEST_EXISTS) ) {
-			pImage = new Gtk::Image(Gdk::Pixbuf::create_from_file(fileName, 300, 300, true));
-			pictureDialog.set_image(*pImage);
-			foundFile = true;
-			break;
-		}
-	}
-	if( !foundFile ) {
-		pImage = new Gtk::Image(Gtk::Stock::MISSING_IMAGE,Gtk::ICON_SIZE_DIALOG);
-		pictureDialog.set_image(*pImage);
-	}
-	pImage->show();
-	pictureDialog.run();
-	delete pImage;
 }
 
 void MainWindow::on_partsNewPart_activated_event()
@@ -898,7 +900,11 @@ void MainWindow::on_partsFilterSets_activated_event()
 		Gtk::TreeModel::Row row = *iter;
 		string partNumber = row[m_partsStore.m_partNumber];
 		stringstream sql;
-		sql << "select s.num,s.description,ifnull(s.started,9999),ifnull(s.ended,9999),s.rowid FROM sets s,set_parts sp WHERE s.num=sp.set_num AND sp.part_num='" << partNumber << "' ORDER BY s.started DESC,s.description";
+		sql << 
+			"SELECT s.num,s.description,IFNULL(s.started,9999),IFNULL(s.ended,9999),s.rowid " <<
+			"FROM sets s,set_parts sp " <<
+			"WHERE s.num=sp.set_num AND sp.part_num='" << partNumber << "' " <<
+			"ORDER BY s.started,s.description DESC";
 		m_pSetsStore->clear();
 		m_pSql->ExecQuery(&sql,PopulateSetsCallback);
 	}
@@ -909,7 +915,9 @@ void MainWindow::on_partsUnfilterSets_activated_event()
 	m_bSetsFiltered = false;
 	m_pSetsStore->clear();
 	const char *cmd = 
-		"select num,description,ifnull(started,9999),ifnull(ended,9999),rowid FROM sets ORDER BY started DESC,description";
+		"SELECT num,description,IFNULL(started,9999),IFNULL(ended,9999),rowid "\
+		"FROM sets "\
+		"ORDER BY started,description DESC";
 	m_pSql->ExecQuery(cmd,PopulateSetsCallback);
 }
 #endif
@@ -970,7 +978,8 @@ void MainWindow::on_toMakeViewPart_activated_event()
 		string partNumber = row[m_toMakeStore.m_partNumber];
 		string description = row[m_toMakeStore.m_description];
 		string size = row[m_toMakeStore.m_size];
-		DisplayPicture(partNumber,description,size);
+		string notes = row[m_toMakeStore.m_notes];
+		DisplayPicture(partNumber,description,size,notes);
 	}
 }
 
@@ -1020,14 +1029,14 @@ void MainWindow::FillToMake(string haveNum,string wantNum)
 	cmd
 	  << "DROP VIEW IF EXISTS v_set_parts; CREATE TEMP VIEW v_set_parts AS SELECT "
 	  << "s.num set_num,s.description set_description,p.num part_num,p.description part_description,p.size,"
-	  << "sp.count,IFNULL(pp.price,0) price,sp.count*IFNULL(pp.price,0) total " 
+	  << "sp.count,IFNULL(pp.price,0) price,sp.count*IFNULL(pp.price,0) total,p.notes " 
 		<< "FROM sets s INNER join set_parts sp ON s.num=sp.set_num JOIN parts p ON p.num=sp.part_num "
 		<< "LEFT OUTER JOIN v_part_prices pp ON p.num=pp.part_num AND pp.pricelist_num=" << m_pricelistNumber
 		<< " ORDER BY p.pnPrefix,p.pnDigits,p.pnSuffix; "
 		<< "DROP TABLE IF EXISTS have; DROP TABLE IF EXISTS want; "
 		<< "CREATE TEMP TABLE have AS SELECT * FROM v_set_parts WHERE set_num='" << m_pSql->Escape(haveNum) << "'; "
 		<< "CREATE TEMP TABLE want AS SELECT * FROM v_set_parts WHERE set_num='" << m_pSql->Escape(wantNum) << "'; "
-		<< "SELECT w.part_num,w.part_description,w.size,w.price,w.count-IFNULL(h.count,0),w.price*(w.count-IFNULL(h.count,0)) "
+		<< "SELECT w.part_num,w.part_description,w.size,w.price,w.count-IFNULL(h.count,0),w.price*(w.count-IFNULL(h.count,0)),w.notes "
 		<< "FROM want w LEFT OUTER JOIN have h ON w.part_num=h.part_num WHERE w.count-IFNULL(h.count,0)>0";
 	m_pSql->ExecQuery(&cmd, PopulateToMakeCallback);
 	
@@ -1036,7 +1045,7 @@ void MainWindow::FillToMake(string haveNum,string wantNum)
 	m_pToMakeCost->set_text(temp.str());
 }
 
-void MainWindow::PopulateToMake(string partNumber,string description,string size,double price,int count,double total)
+void MainWindow::PopulateToMake(string partNumber,string description,string size,double price,int count,double total,string notes)
 {
 	Gtk::TreeModel::Row row = *(m_pToMakeStore->append());
 	row[m_toMakeStore.m_partNumber] = partNumber;
@@ -1045,6 +1054,7 @@ void MainWindow::PopulateToMake(string partNumber,string description,string size
 	row[m_toMakeStore.m_count] = count;
 	row[m_toMakeStore.m_price] = price;
 	row[m_toMakeStore.m_total] = total;
+	row[m_toMakeStore.m_notes] = notes;
 	m_toMakePartsCount += count;
 	m_toMakeCost += total;
 }
@@ -1087,19 +1097,22 @@ void MainWindow::SetsSetup()
 	}
 
 	const char *cmd = 
-		"select num,description,ifnull(started,9999),ifnull(ended,9999),rowid FROM sets ORDER BY started DESC,description";
+		"SELECT num,description,IFNULL(started,9999),IFNULL(ended,9999),rowid "\
+		"FROM sets "\
+		"ORDER BY started,description DESC";
 	m_pSql->ExecQuery(cmd,PopulateSetsCallback);
 }
 
 void MainWindow::PopulateSets(string setNumber,string description,int started,int ended,gint64 rowid)
 {
-	Gtk::TreeModel::Row row = *(m_pSetsStore->append());
+	Gtk::TreeModel::Row row = *(m_pSetsStore->prepend());
 	row[m_setsStore.m_rowId] = rowid;
 	row[m_setsStore.m_setNumber] = setNumber;
 	row[m_setsStore.m_description] = description;
 	row[m_setsStore.m_started] = started;
 	row[m_setsStore.m_ended] = ended;
 }
+
 #ifndef _Sets_Fields_Edited
 void MainWindow::on_sets_description_edited(Glib::ustring pathStr, Glib::ustring text)
 {
@@ -1261,10 +1274,14 @@ void MainWindow::PricelistsSetup()
 	GET_TEXT_RENDERER("priceslistsDescriptionCellRendererText",pTextCellRenderer,m_pPricelistsView,m_pricelistsStore.m_description.index())
 	pTextCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_pricelists_description_edited));
 
+  Gtk::CellRendererCombo *pComboCellRenderer = NULL;
+  GET_COMBO_RENDERER("pricelistsCurrencyCellRendererCombo",pComboCellRenderer,m_pPricelistsView,m_pricelistsStore.m_currencyName.index())
+  pComboCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_pricelists_currency_edited));
+  
 	GET_WIDGET(m_refBuilder,"pricelistsContextMenu",m_pPricelistsContextMenu)
 
-	GET_WIDGET(m_refBuilder,"pricelistsImportPricelistMenuItem",m_pPricelistsImportPricelistMenuItem)
-	m_pPricelistsImportPricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_pricelistsImportPricelist_activated_event));
+	GET_WIDGET(m_refBuilder,"pricelistsImportPricesMenuItem",m_pPricelistsImportPricesMenuItem)
+	m_pPricelistsImportPricesMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_pricelistsImportPrices_activated_event));
 
 	GET_WIDGET(m_refBuilder,"pricelistsNewPricelistMenuItem",m_pPricelistsNewPricelistMenuItem)
 	m_pPricelistsNewPricelistMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_pricelistsNewPricelist_activated_event));
@@ -1280,13 +1297,13 @@ void MainWindow::PricelistsSetup()
 	}
 
 	GET_WIDGET(m_refBuilder,"importFileChooserDialog",m_pPricelistImportCsvDialog);
-	Gtk::FileFilter filter_csv;
-	filter_csv.set_name("CSV files");
-	filter_csv.add_mime_type("text/csv");
+	Glib::RefPtr<Gtk::FileFilter> filter_csv = Gtk::FileFilter::create();
+	filter_csv->set_name("CSV files");
+	filter_csv->add_mime_type("text/csv");
 	m_pPricelistImportCsvDialog->add_filter(filter_csv);
-	Gtk::FileFilter filter_any;
-	filter_any.set_name("All files");
-	filter_any.add_pattern("*");
+	Glib::RefPtr<Gtk::FileFilter> filter_any = Gtk::FileFilter::create();
+	filter_any->set_name("All files");
+	filter_any->add_pattern("*");
 	m_pPricelistImportCsvDialog->add_filter(filter_any);
 
 	if( m_pPricelistsStore->children().size() > 0 ) {
@@ -1326,6 +1343,40 @@ void MainWindow::on_pricelists_description_edited(Glib::ustring pathStr, Glib::u
 		<< "UPDATE pricelists SET description='" << m_pSql->Escape(text)
 		<< "' WHERE num=" << num;
 	m_pSql->ExecNonQuery(&sql);
+}
+
+void MainWindow::on_pricelists_currency_edited(Glib::ustring pathStr, Glib::ustring text)
+{
+	Gtk::TreeIter iter = m_pPricelistsStore->get_iter(pathStr);
+	if( !iter ) {
+		throw "No iter for "+pathStr;
+	}
+	gint64 num = (*iter)[m_pricelistsStore.m_num];
+	// there MUST be a better way of getting the active row
+	// from a CellRendererCombo!
+	Gtk::TreeModel::Children rows = m_pCurrenciesStore->children();
+  string code;
+	for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
+		Gtk::TreeModel::Row row = *r;
+		string currencyName = row[m_currenciesStore.m_name];
+		if( currencyName == text ) {
+			(*iter)[m_pricelistsStore.m_currencyCode] = code = row[m_currenciesStore.m_code];
+			(*iter)[m_pricelistsStore.m_currencyName] = text;
+			bool inUse = (*iter)[m_pricelistsStore.m_use];
+			if( inUse ) {
+				m_pricelistCurrencyRate = (*iter)[m_pricelistsStore.m_currencyRate];
+				m_pricelistCurrencyCode = (*iter)[m_pricelistsStore.m_currencyCode];
+			}
+			break;
+ 		}
+	}
+	if( !code.empty() ) {
+		stringstream sql;
+		sql
+			<< "UPDATE pricelists SET currency_code='" << m_pSql->Escape(code)
+			<< "' WHERE num=" << num;
+		m_pSql->ExecNonQuery(&sql);
+	}
 }
 
 void MainWindow::on_pricelist_use_toggled(const Glib::ustring &pathStr)
@@ -1370,6 +1421,9 @@ void MainWindow::on_pricelists_button_pressed(GdkEventButton *pEvent)
 		if( m_pPricelistsView->get_path_at_pos((int)pEvent->x,(int)pEvent->y,path) ) {
 			m_pPricelistsView->set_cursor(path);
 		}
+		// only activate the import prices function if there is a selected
+		// pricelist
+		//
 		// only activate the delete pricelists function if there is a
 		// selected pricelist and it's not the active one
 		//
@@ -1379,7 +1433,9 @@ void MainWindow::on_pricelists_button_pressed(GdkEventButton *pEvent)
 		// about finding another pricelist when the active one was
 		// deleted
 		m_pPricelistsDeletePricelistMenuItem->set_sensitive(false);
+		m_pPricelistsImportPricesMenuItem->set_sensitive(false);
 		if( m_pPricelistsView->get_selection()->count_selected_rows() != 0 ) {
+			m_pPricelistsImportPricesMenuItem->set_sensitive(true);
 			Gtk::TreeModel::iterator iter = m_pPricelistsView->get_selection()->get_selected();
 			gint64 selectedPricelistNum = (*iter)[m_pricelistsStore.m_num];
 			m_pPricelistsDeletePricelistMenuItem->set_sensitive(selectedPricelistNum != m_pricelistNumber);
@@ -1388,13 +1444,71 @@ void MainWindow::on_pricelists_button_pressed(GdkEventButton *pEvent)
 	}
 }
 
-void MainWindow::on_pricelistsImportPricelist_activated_event()
+void MainWindow::on_pricelistsImportPrices_activated_event()
 {
 	int response = m_pPricelistImportCsvDialog->run();
 	m_pPricelistImportCsvDialog->hide();
 	if( response == Gtk::RESPONSE_OK ) {
 		if( !m_pPricelistImportCsvDialog->get_filename().empty() ) {
-			
+			Gtk::TreeModel::iterator iter = m_pPricelistsView->get_selection()->get_selected();
+			gint64 selectedPricelistNum = (*iter)[m_pricelistsStore.m_num];
+			CsvReader reader(m_pPricelistImportCsvDialog->get_filename());
+			vector<string> fields;
+
+			Glib::RefPtr<Gdk::Window> refWindow = m_pWindow->get_window();
+			if( refWindow ) {
+				Glib::RefPtr<Gdk::Cursor> waitCursor = Gdk::Cursor::create(Gdk::WATCH);
+				refWindow->set_cursor(waitCursor);
+				Gdk::flush();
+				while(Gtk::Main::events_pending()) {
+					Gtk::Main::iteration();
+				}
+			}
+			int numUpdated = 0;
+			int numInserted = 0;
+			vector<string> unknownPartNumbers;
+			while( reader.Parse(fields) ) {
+				if( fields.size() == 2 && !fields[0].empty() && !fields[1].empty() ) {
+					double price = atof(fields[1].c_str());
+					string num = fields[0];
+					stringstream sql;
+					sql
+						<< "UPDATE part_prices SET price=" << price 
+						<< " WHERE part_num='" << m_pSql->Escape(num) << "' AND pricelist_num=" << selectedPricelistNum;
+					if( m_pSql->ExecUpdate(&sql) == 0 ) {
+						// This part didn't already exist in the currently selected pricelist.
+						// There are 2 possibilities. The 1st is that the part itself exists,
+						// but has never been added to this pricelist. That's fine; we'll go
+						// ahead and add it. But it's also possible that the part itself
+						// doesn't even exist, in which case we want to skip adding it.
+						//
+						// It should really be reported at some point too.
+						if( PartExists(num) ) {
+							sql.str("");
+							sql
+								<< "INSERT INTO part_prices(pricelist_num,part_num,price) VALUES ("
+								<< selectedPricelistNum
+								<< ",'" << m_pSql->Escape(num) << "',"
+								<< price << ")";
+							m_pSql->ExecInsert(&sql);
+							++numInserted;
+						}	else {
+							unknownPartNumbers.push_back(num);
+						}
+					} else {
+						++numUpdated;
+					}
+					FillCollection();
+					FillToMake0();
+				}
+			}
+			if( refWindow ) {
+				refWindow->set_cursor();
+				Gdk::flush();
+				while(Gtk::Main::events_pending()) {
+					Gtk::Main::iteration();
+				}
+			}
 		}
 	}
 }
@@ -1830,12 +1944,13 @@ static int PopulateToMakeCallback(void *wnd, int argc, char **argv, char **azCol
 {
 	MainWindow *window = (MainWindow *)wnd;
 	window->PopulateToMake(
-		argv[0],	// w.part_num
-		argv[1],	// w.part_description
-		argv[2],	// w.size
+		argv[0],				// w.part_num
+		argv[1],				// w.part_description
+		argv[2],				// w.size
 		atof(argv[3]),	// w.price
 		atoi(argv[4]),	// w.count-IFNULL(h.count,0)
-		atof(argv[5]));	// w.price*(w.count-IFNULL(h.count,0))
+		atof(argv[5]),	// w.price*(w.count-IFNULL(h.count,0))
+		argv[6]);				// w.notes
 	return 0;
 }
 
@@ -1859,7 +1974,7 @@ static int PopulateSetsCallback(void *wnd, int argc, char **argv, char **azColNa
 static int PopulateCollectionCallback(void *wnd, int argc, char **argv, char **azColName)
 {
 	MainWindow *window = (MainWindow *)wnd;
-	window->PopulateCollection(atol(argv[0]),argv[1],argv[2],argv[3],atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7],atoi(argv[8]),argv[9]);
+	window->PopulateCollection(atol(argv[0]),argv[1],argv[2],argv[3],atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7],atoi(argv[8]),argv[9],argv[10]);
 	return 0;
 }
 

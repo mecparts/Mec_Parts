@@ -51,9 +51,9 @@ class MainWindow
 		void PopulatePricelists(gint64 num,string description,string currencyName,string code,double rate);
 		void PopulateParts(gint64 rowId,string partNumber,string description,string size,gdouble price,string notes,string pnPrefix,int pnDigits,string pnSuffix);
 		void PopulateSets(string setNumber,string description,int started,int ended,gint64 rowId);
-		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix);
+		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix,string notes);
 		void AddSetPartToPartsList(string partNumber,int count);
-		void PopulateToMake(string partNumber,string description,string size,double price,int count,double total);
+		void PopulateToMake(string partNumber,string description,string size,double price,int count,double total,string notes);
 
 	private:
 		bool m_initialized;
@@ -64,11 +64,7 @@ class MainWindow
 		bool m_bSetsFiltered;
 		string SqlEscaped(string value);
 		bool on_delete_event(GdkEventAny *e);
-		void DisplayPicture(string partNumber,string description,string size);
-		
-		void on_new_database();
-		void on_open_database();
-		void on_about();
+		void DisplayPicture(string partNumber,string description,string size,string notes);
 		
 		void CurrenciesSetup();
 		void on_currency_use_toggled(const Glib::ustring &pathStr);
@@ -93,8 +89,9 @@ class MainWindow
 		void PricelistsSetup();
 		void RefreshPriceLists();
 		void on_pricelists_description_edited(Glib::ustring pathStr, Glib::ustring text);
+		void on_pricelists_currency_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_pricelists_button_pressed(GdkEventButton *pEvent);
-		void on_pricelistsImportPricelist_activated_event();
+		void on_pricelistsImportPrices_activated_event();
 		void on_pricelistsNewPricelist_activated_event();
 		void on_pricelistsDeletePricelist_activated_event();
 		void on_pricelist_use_toggled(const Glib::ustring &pathStr);
@@ -105,7 +102,7 @@ class MainWindow
 		string m_pricelistCurrencyCode;
 		PricelistsStore m_pricelistsStore;
 		Gtk::Menu *m_pPricelistsContextMenu;
-		Gtk::MenuItem *m_pPricelistsImportPricelistMenuItem;
+		Gtk::MenuItem *m_pPricelistsImportPricesMenuItem;
 		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
 		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
 		Gtk::FileChooserDialog *m_pPricelistImportCsvDialog;
@@ -146,6 +143,7 @@ class MainWindow
 		Glib::RefPtr<Gtk::ListStore> m_pPartsStore;
 		void PartsSetup();
 		void FillParts();
+		bool PartExists(string partNumber);
 		void on_parts_description_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_parts_size_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text);

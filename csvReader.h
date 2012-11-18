@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 
 #ifndef _CSVREADER_H
 #define _CSVREADER_H
@@ -32,11 +33,13 @@ class CsvReader
 	public:
 		CsvReader(string csvFilename);
 		virtual ~CsvReader();
-		void Parse(string line,vector<string> &fields);
-		void Parse();
+		bool Parse(vector<string> &fields);
 
 	private:
-		string Strip(string field);
+		ifstream m_ifs;
 		string m_csvFilename;
+
+		void Parse(string line,vector<string> &fields);
+		string Strip(string field);
 };
 #endif
