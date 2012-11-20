@@ -3,7 +3,7 @@
 CC = g++
 
 DEPS = 
-SRCS = main.cpp mainWindow.cpp config.cpp selectPartsDialog.cpp selectSetDialog.cpp newPartDialog.cpp newSetDialog.cpp newPricelistDialog.cpp newCurrencyDialog.cpp sql.cpp csvReader.cpp
+SRCS = main.cpp mainWindow.cpp config.cpp selectPartsDialog.cpp selectSetDialog.cpp newPartDialog.cpp newSetDialog.cpp newPricelistDialog.cpp newCurrencyDialog.cpp sql.cpp csvReader.cpp importPricesResultDialog.cpp
 OBJS = $(SRCS:.cpp=.o)
 EXE = mecparts
 
@@ -21,7 +21,7 @@ install: mecparts
 
 #dependencies of object files on header files
 config.o: config.h mecparts.h
-main.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h toMakeStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newPricelistDialog.h newSetDialog.h sql.h newCurrencyDialog.h
+main.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h toMakeStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newPricelistDialog.h newSetDialog.h sql.h importPricesResultDialog.h newCurrencyDialog.h
 mainWindow.o: mainWindow.h mecparts.h collectionStore.h partsStore.h setsStore.h toMakeStore.h pricelistsStore.h config.h selectPartsDialog.h selectSetDialog.h newPartDialog.h newSetDialog.h sql.h currenciesStore.h newCurrencyDialog.h csvReader.h
 newPartDialog.o: newPartDialog.h mecparts.h
 newSetDialog.o: newSetDialog.h mecparts.h

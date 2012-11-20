@@ -37,6 +37,7 @@
 #include "newSetDialog.h"
 #include "newPricelistDialog.h"
 #include "newCurrencyDialog.h"
+#include "importPricesResultDialog.h"
 #include "sql.h"
 
 class MainWindow
@@ -106,6 +107,7 @@ class MainWindow
 		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
 		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
 		Gtk::FileChooserDialog *m_pPricelistImportCsvDialog;
+		ImportPricesResultDialog *m_pImportPricesResultDialog;
 
 		Gtk::TreeView *m_pCollectionView;
 		CollectionStore m_collectionStore;

@@ -1,8 +1,13 @@
 /*
- * mainWindow.cpp
+ * mainWindow.cpp: the beating heart of MecParts().
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
+ * BTW: I'm using #ifndef _region_name to ape .NET's #region directive.
+ * Geany's (the lightweight IDE I used for development) code folding
+ * handles it nicely and allows me to concentrate on just the section of
+ * code that I'm working on.
+ *   
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -34,7 +39,14 @@
 #include "mainWindow.h"
 #include "csvReader.h"
 
+using namespace std;
+
 #ifndef _Callback_Definitions
+//
+// Static callback routines for the sqlite3 library. There might well be a way
+// to get the library calls to use a class member function as a callback, but
+// this (while awkward) does work.
+//
 static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName);
 static int PopulatePricelistsCallback(void *wnd, int argc, char **argv, char **azColName);
 static int PopulatePartsCallback(void *wnd, int argc, char **argv, char **azColName);
@@ -43,9 +55,9 @@ static int PopulateCollectionCallback(void *wnd, int argc, char **argv, char **a
 static int AddSetPartCallback(void *wnd,int argc,char **argv, char **azColName);
 static int PopulateToMakeCallback(void *wnd, int argc, char **argv, char **azColName);
 #endif
-using namespace std;
 
 #ifndef _Constructor_Destructor
+// The order of the variable initialization 
 MainWindow::MainWindow() :
 		m_pWindow(NULL),
 		m_initialized(false),
@@ -71,6 +83,7 @@ MainWindow::MainWindow() :
 		m_pPricelistsNewPricelistMenuItem(NULL),
 		m_pPricelistsDeletePricelistMenuItem(NULL),
 		m_pPricelistImportCsvDialog(NULL),
+		m_pImportPricesResultDialog(NULL),
 		m_pCollectionView(NULL),
 		m_pCollectionStore(NULL),
 		m_pCollectionCountCost(NULL),
@@ -204,17 +217,22 @@ bool MainWindow::on_delete_event(GdkEventAny *e)
   return false;
 }
 
+// Display a part. Look in the Pictures subdirectory (relative to where the executable is
+// running from). Look for an image file named for the part with any of the following
+// extensions: jpg, gif, png, bmp, jpeg, pxc, tif or tiff.
+//
+// If we find an image, it's scaled to fit into a 300x300 square.
 void MainWindow::DisplayPicture(string partNumber,string description,string size,string notes)
 {
+	static string imageExtensions[] = {".jpg",".gif",".png",".bmp",".jpeg",".pcx",".tif",".tiff"};
+	static int numImageExtensions = sizeof(imageExtensions)/sizeof(string);
+
 	Gtk::MessageDialog pictureDialog(*m_pWindow,partNumber,false,Gtk::MESSAGE_INFO,Gtk::BUTTONS_OK);
 	pictureDialog.set_secondary_text(description+", "+size+"\n"+notes);
 	Gtk::Image *pImage = NULL;
-	string imageExtensions[] = {".jpg",".gif",".png",".bmp",".jpeg",".pcx",".tif",".tiff"};
-	int numImageExtensions = sizeof(imageExtensions)/sizeof(string);
 	bool foundFile = false;
-	string fileName;
 	for( int i=0; i<numImageExtensions; ++i ) {
-		fileName = "Pictures/"+partNumber+imageExtensions[i];
+		string fileName = "Pictures/"+partNumber+imageExtensions[i];
 		if( Glib::file_test(fileName,Glib::FILE_TEST_EXISTS) ) {
 			pImage = new Gtk::Image(Gdk::Pixbuf::create_from_file(fileName, 300, 300, true));
 			pictureDialog.set_image(*pImage);
@@ -1316,6 +1334,11 @@ void MainWindow::PricelistsSetup()
 	} else {
 		throw "Oh no! No priceslists in database";
 	}
+	m_pImportPricesResultDialog = new ImportPricesResultDialog(m_refBuilder);
+	if( !m_pImportPricesResultDialog ) {
+		throw "Could not get importPricesResultDialog";
+	}
+
 	RefreshPriceLists();
 }
 
@@ -1498,8 +1521,6 @@ void MainWindow::on_pricelistsImportPrices_activated_event()
 					} else {
 						++numUpdated;
 					}
-					FillCollection();
-					FillToMake0();
 				}
 			}
 			if( refWindow ) {
@@ -1509,6 +1530,11 @@ void MainWindow::on_pricelistsImportPrices_activated_event()
 					Gtk::Main::iteration();
 				}
 			}
+			FillCollection();
+			FillToMake0();
+			m_pImportPricesResultDialog->SetValues(numInserted,numUpdated,unknownPartNumbers);
+			m_pImportPricesResultDialog->m_pDialog->run();
+			m_pImportPricesResultDialog->m_pDialog->hide();
 		}
 	}
 }

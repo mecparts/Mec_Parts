@@ -1,5 +1,5 @@
 /*
- * main.cpp
+ * main.cpp: the main() module and unhandled exception catcher for MecParts.
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
