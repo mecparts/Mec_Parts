@@ -22,6 +22,7 @@
 #ifndef _NEWCURRENCYDIALOG_H
 #define _NEWCURRENCYDIALOG_H
 
+#include <boost/regex.hpp>
 #include "mecparts.h"
 #include "currenciesStore.h"
 
@@ -35,11 +36,11 @@ class NewCurrencyDialog
 		
 		Gtk::Dialog *m_pDialog;
 	
-		void ErrorLabel(string text) { m_pNewCurrencyErrorLabel->set_text(text); }
 		string Description() { return m_pNewCurrencyDescription->get_text(); }
 		string CurrencyCode() { return m_pNewCurrencyCode->get_text(); }
 		double CurrencyRate() { return atof(m_pNewCurrencyRate->get_text().c_str()); }
-		void ClearInput();
+		gint Run(string errorLabel);
+		void Hide();
 		
 	private:
 		bool on_delete_event(GdkEventAny *e);
@@ -51,7 +52,8 @@ class NewCurrencyDialog
 		Gtk::Entry *m_pNewCurrencyRate;
 		Gtk::Button *m_pNewCurrencyOkButton;
 		CurrenciesStore m_currenciesStore;
-
+		boost::regex m_codeRegex;
+		boost::regex m_whitespaceRegex;
 };
 
 #endif // _NEWCURRENCYDIALOG_H

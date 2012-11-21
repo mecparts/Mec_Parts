@@ -1,5 +1,5 @@
 /*
- * newSetDialog.cpp
+ * newSetDialog.cpp: create a new set
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "newSetDialog.h"
+
 using namespace std;
 
 NewSetDialog::NewSetDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
@@ -38,11 +39,13 @@ NewSetDialog::NewSetDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 	GET_WIDGET(pRefBuilder,"newSetErrorLabel",m_pNewSetErrorLabel)
 	GET_WIDGET(pRefBuilder,"newSetOkButton",m_pNewSetOkButton)
 	GET_WIDGET(pRefBuilder,"setNumberEntry",m_pNewSetNumber)
-	m_pNewSetNumber->signal_changed().connect(sigc::mem_fun(*this,&NewSetDialog::on_setNum_changed_event));
+	m_pNewSetNumber->signal_changed().connect(sigc::mem_fun(*this,&NewSetDialog::on_setInfo_changed_event));
 
 	GET_WIDGET(pRefBuilder,"setDescriptionEntry",m_pNewSetDescription)
+	m_pNewSetDescription->signal_changed().connect(sigc::mem_fun(*this,&NewSetDialog::on_setInfo_changed_event));
 	GET_WIDGET(pRefBuilder,"startedEntry",m_pNewSetStarted)
 	GET_WIDGET(pRefBuilder,"endedEntry",m_pNewSetEnded)
+	m_whitespaceRegex.assign("^\\s*$");
 }
 
 NewSetDialog::~NewSetDialog()
@@ -52,22 +55,33 @@ NewSetDialog::~NewSetDialog()
 
 bool NewSetDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
 }
 
-void NewSetDialog::on_setNum_changed_event()
+// Minimum requirements for creating a new set are a non blank set number and description
+void NewSetDialog::on_setInfo_changed_event()
 {
-	m_pNewSetOkButton->set_sensitive(!SetNumber().empty());
+	m_pNewSetOkButton->set_sensitive(!boost::regex_search(SetNumber(),m_whitespaceRegex) && !boost::regex_search(Description(),m_whitespaceRegex));
 	m_pNewSetErrorLabel->set_text("");
 }
 
-void NewSetDialog::ClearInput()
+// clear out any prior user text, set the cursor to the first field and run the dialog
+gint NewSetDialog::Run(string errorLabel)
 {
-	m_pNewSetErrorLabel->set_text("");
-	m_pNewSetNumber->set_text("");
-	m_pNewSetDescription->set_text("");
-	m_pNewSetStarted->set_text("");
-	m_pNewSetEnded->set_text("");
+	m_pNewSetErrorLabel->set_text(errorLabel);
+	if( errorLabel.empty() ) {
+		m_pNewSetNumber->set_text("");
+		m_pNewSetDescription->set_text("");
+		m_pNewSetStarted->set_text("");
+		m_pNewSetEnded->set_text("");
+		m_pNewSetNumber->grab_focus();
+	}
+	return m_pDialog->run();
+}
+
+void NewSetDialog::Hide()
+{
+	m_pDialog->hide();
 }
 
 int NewSetDialog::Started()

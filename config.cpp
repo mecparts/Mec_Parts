@@ -135,6 +135,7 @@ void Config::set_selectSetDialog_size(int w, int h)
 	m_selectSetDialog_sizey = h;
 }
 
+// save configuration data
 bool Config::save_cfg()
 {
 	if ( !check_dir() ) {
@@ -163,6 +164,7 @@ bool Config::save_cfg()
 	return true;
 }
 
+// load configuration data
 bool Config::load_cfg()
 {
 	if( !check_dir() ) {

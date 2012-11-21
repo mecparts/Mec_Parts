@@ -48,14 +48,20 @@ class MainWindow
 		
 		Gtk::Window *m_pWindow;
 
-		void PopulateCurrencies(string code,string name,double rate);
+		static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName);
+		static int PopulatePricelistsCallback(void *wnd, int argc, char **argv, char **azColName);
+		static int PopulatePartsCallback(void *wnd, int argc, char **argv, char **azColName);
+		static int PopulateSetsCallback(void *wnd, int argc, char **argv, char **azColName);
+		static int PopulateCollectionCallback(void *wnd, int argc, char **argv, char **azColName);
+		static int AddSetPartCallback(void *wnd,int argc,char **argv, char **azColName);
+		static int PopulateToMakeCallback(void *wnd, int argc, char **argv, char **azColName);
 		void PopulatePricelists(gint64 num,string description,string currencyName,string code,double rate);
 		void PopulateParts(gint64 rowId,string partNumber,string description,string size,gdouble price,string notes,string pnPrefix,int pnDigits,string pnSuffix);
 		void PopulateSets(string setNumber,string description,int started,int ended,gint64 rowId);
 		void PopulateCollection(gint64 rowId,string partNumber,string description,string size,guint count,gdouble price,gdouble total,string pnPrefix,int pnDigits,string pnSuffix,string notes);
 		void AddSetPartToPartsList(string partNumber,int count);
 		void PopulateToMake(string partNumber,string description,string size,double price,int count,double total,string notes);
-
+		
 	private:
 		bool m_initialized;
 		Glib::RefPtr<Gtk::Builder> m_refBuilder;
@@ -63,8 +69,8 @@ class MainWindow
 		Sql *m_pSql;
 		map<string,int> m_partsList;
 		bool m_bSetsFiltered;
-		string SqlEscaped(string value);
 		bool on_delete_event(GdkEventAny *e);
+		void WaitCursor(bool on);
 		void DisplayPicture(string partNumber,string description,string size,string notes);
 		
 		void CurrenciesSetup();
@@ -87,8 +93,12 @@ class MainWindow
 		Gtk::MenuItem *m_pCurrenciesNewCurrencyMenuItem;
 		Gtk::MenuItem *m_pCurrenciesDeleteCurrencyMenuItem;
 		
+	protected:
+		Glib::RefPtr<Gtk::ListStore> m_pPricelistsStore;
+		PricelistsStore m_pricelistsStore;
+	private:
 		void PricelistsSetup();
-		void RefreshPriceLists();
+		void RefreshPrices();
 		void on_pricelists_description_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_pricelists_currency_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_pricelists_button_pressed(GdkEventButton *pEvent);
@@ -97,11 +107,9 @@ class MainWindow
 		void on_pricelistsDeletePricelist_activated_event();
 		void on_pricelist_use_toggled(const Glib::ustring &pathStr);
 		Gtk::TreeView *m_pPricelistsView;
-		Glib::RefPtr<Gtk::ListStore> m_pPricelistsStore;
 		gint64 m_pricelistNumber;
 		double m_pricelistCurrencyRate;
 		string m_pricelistCurrencyCode;
-		PricelistsStore m_pricelistsStore;
 		Gtk::Menu *m_pPricelistsContextMenu;
 		Gtk::MenuItem *m_pPricelistsImportPricesMenuItem;
 		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
@@ -109,9 +117,13 @@ class MainWindow
 		Gtk::FileChooserDialog *m_pPricelistImportCsvDialog;
 		ImportPricesResultDialog *m_pImportPricesResultDialog;
 
-		Gtk::TreeView *m_pCollectionView;
+	protected:
 		CollectionStore m_collectionStore;
 		Glib::RefPtr<Gtk::ListStore> m_pCollectionStore;
+		int m_collectionPartsCount;
+		double m_collectionCost;
+	private:
+		Gtk::TreeView *m_pCollectionView;
 		Gtk::Label *m_pCollectionCountCost;
 		Gtk::ComboBox *m_pCollectionSetComboBox;
 		Gtk::Menu *m_pCollectionContextMenu;
@@ -121,10 +133,6 @@ class MainWindow
 		Gtk::MenuItem *m_pCollectionAddSetMenuItem;
 		string m_collectionNumber;
 		string m_collectionDescription;
-		string m_collectionPartNumber;
-		string m_collectionPartDescription;
-		int m_collectionPartsCount;
-		double m_collectionCost;
 		int m_collectionViewPriceColumnIndex;
 		void CollectionSetup();
 		void on_collection_set_combobox_changed_event();
@@ -139,10 +147,12 @@ class MainWindow
 		void AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool updateIfFound);
 		void CalculateCollectionTotals();
 		void FillCollection();
-		
-		Gtk::TreeView *m_pPartsView;
-		PartsStore m_partsStore;
+
+	protected:    
 		Glib::RefPtr<Gtk::ListStore> m_pPartsStore;
+		PartsStore m_partsStore;
+	private:
+		Gtk::TreeView *m_pPartsView;
 		void PartsSetup();
 		void FillParts();
 		bool PartExists(string partNumber);
@@ -165,13 +175,13 @@ class MainWindow
 		Gtk::MenuItem *m_pPartsDeletePartMenuItem;
 		Gtk::MenuItem *m_pPartsFilterSetsMenuItem;
 		Gtk::MenuItem *m_pPartsUnfilterSetsMenuItem;
-		string m_partsPartNumber;
-		string m_partsPartDescription;
 		int m_partsViewPriceColumnIndex;
 
-		Gtk::TreeView *m_pSetsView;
+	protected:
 		SetsStore m_setsStore;
 		Glib::RefPtr<Gtk::ListStore> m_pSetsStore;
+	private:
+		Gtk::TreeView *m_pSetsView;
 		void SetsSetup();
 		void on_sets_description_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_sets_started_edited(Glib::ustring pathStr, Glib::ustring text);
@@ -202,8 +212,7 @@ class MainWindow
 		void on_toMakeViewPart_activated_event();
 		void on_toMake_partNumber_clicked();
 		void on_toMake_description_clicked();
-		void FillToMake0();
-		void FillToMake(string haveNum,string wantNum);
+		void FillToMake();
 		
 		SelectPartsDialog *m_pSelectPartsDialog;
 		void AddPartCallback(const Gtk::TreeModel::iterator &iter);

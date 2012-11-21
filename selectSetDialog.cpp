@@ -1,5 +1,7 @@
 /*
- * selectSetDialog.cpp
+ * selectSetDialog.cpp: select a number of sets from the list of sets (used
+ *  in the collection tab to add the contents of a number of sets to the
+ *  current collection).
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -36,7 +38,11 @@ SelectSetDialog::SelectSetDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder, Config 
 	m_pDialog->signal_delete_event().connect(sigc::mem_fun(*this,&SelectSetDialog::on_delete_event));
 
 	GET_WIDGET(pRefBuilder,"selectSetView",m_pSelectSetView)
+	m_pSelectSetView->get_selection()->signal_changed().connect(sigc::mem_fun(*this,&SelectSetDialog::on_selection_changed_event));
+	// allow adding multiples sets at a time
 	Selected()->set_mode(Gtk::SELECTION_MULTIPLE);
+
+	GET_WIDGET(pRefBuilder,"selectSetOkButton",m_pOkButton)
 
 	int width,height;
 	m_pCfg->get_selectSetDialog_size(width,height);
@@ -62,7 +68,24 @@ void SelectSetDialog::on_hide_event()
 	m_pCfg->set_selectSetDialog_size(width,height);
 }
 
+void SelectSetDialog::on_selection_changed_event()
+{
+	m_pOkButton->set_sensitive(SelectedCount()>0);
+}
+
 bool SelectSetDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
+}
+
+// 'de-select' all prior selections before showing the dialog
+gint SelectSetDialog::Run()
+{
+	m_pSelectSetView->get_selection()->unselect_all();
+	return m_pDialog->run();
+}
+
+void SelectSetDialog::Hide()
+{
+	m_pDialog->hide();
 }

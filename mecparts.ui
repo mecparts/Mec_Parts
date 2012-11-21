@@ -627,10 +627,12 @@
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Import Prices Result </property>
+    <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">250</property>
     <property name="default_height">225</property>
     <property name="type_hint">dialog</property>
+    <property name="transient_for">mainWindow</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox10">
         <property name="can_focus">False</property>
@@ -1777,6 +1779,7 @@
                 <property name="label">gtk-ok</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
@@ -1997,6 +2000,7 @@
                 <property name="label">gtk-ok</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
@@ -2370,10 +2374,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="okButton">
+              <object class="GtkButton" id="selectPartsDialogOkButton">
                 <property name="label">gtk-ok</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
@@ -2454,7 +2459,7 @@
     </child>
     <action-widgets>
       <action-widget response="-6">cancelButton</action-widget>
-      <action-widget response="-5">okButton</action-widget>
+      <action-widget response="-5">selectPartsDialogOkButton</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="selectSetDialog">
@@ -2494,10 +2499,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="okButton1">
+              <object class="GtkButton" id="selectSetOkButton">
                 <property name="label">gtk-ok</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
@@ -2567,7 +2573,7 @@
     </child>
     <action-widgets>
       <action-widget response="-6">cancelButton1</action-widget>
-      <action-widget response="-5">okButton1</action-widget>
+      <action-widget response="-5">selectSetOkButton</action-widget>
     </action-widgets>
   </object>
   <object class="GtkMenu" id="setsContextMenu">

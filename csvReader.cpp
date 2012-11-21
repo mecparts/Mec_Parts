@@ -1,5 +1,9 @@
 /*
- * csvReader.cpp
+ * csvReader.cpp: a class to read CSV files. I cadged the basic code for this
+ * from the web but soon discovered that it had real issues with anything but
+ * the most basic of CSV files. Quotes, multi line fields, etc. all threw it
+ * for a loop. Now, as it turned out I only needed basic functionality because
+ * well, I simply got tired of trying to figure out anything more! 
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -27,12 +31,14 @@
 
 using namespace std;
 
+// constructor: takes the name of a csv file and opens it
 CsvReader::CsvReader(string csvFilename)
 {
 	m_csvFilename = csvFilename;
 	m_ifs.open(m_csvFilename.c_str(),ifstream::in);
 }
 
+// destructor: make sure the csv file is closed before we close up shop
 CsvReader::~CsvReader()
 {
 	if( m_ifs.is_open() ) {
@@ -40,6 +46,8 @@ CsvReader::~CsvReader()
 	}
 }
 
+// Strip: remove enclosing single or double quotes and replace
+// internal quote pairs with singles
 string CsvReader::Strip(string field)
 {
 	string output=field;
@@ -77,6 +85,8 @@ string CsvReader::Strip(string field)
 	return output;
 }
 
+// Parse: given a line from the csv file, return the individual columns
+// stripped of any enclosing quotes in a string vector
 void CsvReader::Parse(string line,vector<string> &fields)
 {
 	int begin;
@@ -106,6 +116,8 @@ void CsvReader::Parse(string line,vector<string> &fields)
 	}
 }
 
+// Parse: parse the next line from the csv file into a string vector. Returns
+// true if data is returned or false if we're at the end of the file.
 bool CsvReader::Parse(vector<string> &fields)
 {
 	string line;

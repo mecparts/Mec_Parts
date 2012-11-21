@@ -1,5 +1,6 @@
 /*
- * importPricesResultDialog.h
+ * importPricesResultDialog.h: display the results of importing a csv file
+ *  containing part prices to a price list
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -34,9 +35,10 @@ class ImportPricesResultDialog
 		ImportPricesResultDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
 		virtual ~ImportPricesResultDialog();
 		
-		Gtk::Dialog *m_pDialog;
-		void SetValues(int numAdded,int numUpdated,vector<string> unknownParts);
+		gint Run(int numAdded,int numUpdated,vector<string> unknownParts);
+		void Hide();
 	private:
+		Gtk::Dialog *m_pDialog;
 		bool on_delete_event(GdkEventAny *e);
 		Gtk::Label *m_pPartsAddedLabel;
 		Gtk::Label *m_pPartsUpdatedLabel;

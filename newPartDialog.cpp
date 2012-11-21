@@ -1,5 +1,5 @@
 /*
- * newPartDialog.cpp
+ * newPartDialog.cpp: create a new part
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "newPartDialog.h"
+
 using namespace std;
 
 NewPartDialog::NewPartDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
@@ -39,12 +40,15 @@ NewPartDialog::NewPartDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 	GET_WIDGET(pRefBuilder,"newPartErrorLabel",m_pNewPartErrorLabel)
 	GET_WIDGET(pRefBuilder,"newPartOkButton",m_pNewPartOkButton)
 	GET_WIDGET(pRefBuilder,"partNumberEntry",m_pNewPartNumber)
-	m_pNewPartNumber->signal_changed().connect(sigc::mem_fun(*this,&NewPartDialog::on_partNum_changed_event));
+	m_pNewPartNumber->signal_changed().connect(sigc::mem_fun(*this,&NewPartDialog::on_partInfo_changed_event));
 
 	GET_WIDGET(pRefBuilder,"partDescriptionEntry",m_pNewPartDescription)
+	m_pNewPartDescription->signal_changed().connect(sigc::mem_fun(*this,&NewPartDialog::on_partInfo_changed_event));
 	GET_WIDGET(pRefBuilder,"partSizeEntry",m_pNewPartSize)
 	GET_WIDGET(pRefBuilder,"partPriceEntry",m_pNewPartPrice)
 	GET_WIDGET(pRefBuilder,"partNotesTextView",m_pNewPartNotes)
+	m_pnRegex.assign("^([A-Za-z]*)([0-9]+)([A-Za-z0-9]*)$");
+	m_whitespaceRegex.assign("^\\s*$");
 }
 
 NewPartDialog::~NewPartDialog()
@@ -54,23 +58,40 @@ NewPartDialog::~NewPartDialog()
 
 bool NewPartDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
 }
 
-void NewPartDialog::on_partNum_changed_event()
+// Use a regex to make sure the ok button isn't enabled until we have
+// a valid part number and a non blank description. The part number can
+// take the following forms:
+//
+// 123 prefix='' digits=123 suffix=''
+// abc123 prefix='abc' digits=123 suffix=''
+// 123abc456def prefix='' digits=123 suffix='abc456def'
+// abc123def456ghi prefix='abc' digits=123 suffix='def456ghi'
+void NewPartDialog::on_partInfo_changed_event()
 {
-	m_pNewPartOkButton->set_sensitive(!PartNumber().empty());
+	m_pNewPartOkButton->set_sensitive(boost::regex_search(PartNumber(),m_pnRegex) && !boost::regex_search(Description(),m_whitespaceRegex));
 	m_pNewPartErrorLabel->set_text("");
 }
 
-void NewPartDialog::ClearInput()
+gint NewPartDialog::Run(string errorLabel)
 {
-	m_pNewPartErrorLabel->set_text("");
-	m_pNewPartNumber->set_text("");
-	m_pNewPartDescription->set_text("");
-	m_pNewPartSize->set_text("");
-	m_pNewPartPrice->set_text("");
-	m_pNewPartNotes->get_buffer()->set_text("");
+	m_pNewPartErrorLabel->set_text(errorLabel);
+	if( errorLabel.empty() ) {
+		m_pNewPartNumber->set_text("");
+		m_pNewPartDescription->set_text("");
+		m_pNewPartSize->set_text("");
+		m_pNewPartPrice->set_text("");
+		m_pNewPartNotes->get_buffer()->set_text("");
+		m_pNewPartNumber->grab_focus();
+	}
+	return m_pDialog->run();
+}
+
+void NewPartDialog::Hide()
+{
+	m_pDialog->hide();
 }
 
 double NewPartDialog::Price()

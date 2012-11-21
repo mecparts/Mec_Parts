@@ -31,17 +31,20 @@ class SelectPartsDialog
 		SelectPartsDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder, Config *pCfg);
 		virtual ~SelectPartsDialog();
 		
-		Gtk::Dialog *m_pDialog;
 		Glib::RefPtr<Gtk::TreeSelection> Selected() { return m_pSelectPartsView->get_selection(); }
 		int SelectedCount() { return m_pSelectPartsView->get_selection()->count_selected_rows(); }
-		void UnselectAll() { return m_pSelectPartsView->get_selection()->unselect_all(); }
-	
+		gint Run();
+		void Hide();
+		
 	private:
+		Gtk::Dialog *m_pDialog;
 		Config *m_pCfg;
 		Gtk::TreeView *m_pSelectPartsView;
+		Gtk::Button *m_pOkButton;
 		void on_show_event();
 		void on_hide_event();
 		bool on_delete_event(GdkEventAny *e);
+		void on_selection_changed_event();
 };
 
 #endif // _SELECTPARTSDIALOG_H

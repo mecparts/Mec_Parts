@@ -1,5 +1,6 @@
 /*
- * importPricesResultDialog.cpp
+ * importPricesResultDialog.cpp: display the results of importing a csv file
+ *  containing part prices to a price list
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -49,10 +50,10 @@ ImportPricesResultDialog::~ImportPricesResultDialog()
 
 bool ImportPricesResultDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
 }
 
-void ImportPricesResultDialog::SetValues(int numAdded,int numUpdated,vector<string> unknownParts)
+gint ImportPricesResultDialog::Run(int numAdded,int numUpdated,vector<string> unknownParts)
 {
 	stringstream temp;
 	temp << numAdded;
@@ -65,4 +66,10 @@ void ImportPricesResultDialog::SetValues(int numAdded,int numUpdated,vector<stri
 		temp << unknownParts[i] << endl;
 	}
 	m_pUnknownPartsTextView->get_buffer()->set_text(temp.str());
+	return m_pDialog->run();
+}
+
+void ImportPricesResultDialog::Hide()
+{
+	m_pDialog->hide();
 }

@@ -1,5 +1,5 @@
 /*
- * newPricelistDialog.cpp
+ * newPricelistDialog.cpp: create a new price list
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -20,6 +20,7 @@
  */
 
 #include <iostream>
+#include <boost/regex.hpp>
 #include "newPricelistDialog.h"
 
 using namespace std;
@@ -42,6 +43,7 @@ NewPricelistDialog::NewPricelistDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 	GET_WIDGET(pRefBuilder,"pricelistCurrencyComboBox",m_pNewPricelistCurrencyComboBox);
 	m_pNewPricelistCurrencyComboBox->pack_start(m_currenciesStore.m_name);
 	m_pNewPricelistCurrencyComboBox->signal_changed().connect(sigc::mem_fun(*this,&NewPricelistDialog::on_input_changed_event));
+	m_whitespaceRegex.assign("^\\s*$");
 }
 
 NewPricelistDialog::~NewPricelistDialog()
@@ -51,29 +53,40 @@ NewPricelistDialog::~NewPricelistDialog()
 
 bool NewPricelistDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
 }
 
+// in order to enable the ok button, you'll need a non blank description
+// and a selected currency
 void NewPricelistDialog::on_input_changed_event()
 {
-	m_pNewPricelistOkButton->set_sensitive(m_pNewPricelistCurrencyComboBox->get_active_row_number() != -1 && !Description().empty());
+	m_pNewPricelistOkButton->set_sensitive(m_pNewPricelistCurrencyComboBox->get_active_row_number() != -1 && !boost::regex_search(Description(),m_whitespaceRegex));
 	m_pNewPricelistErrorLabel->set_text("");
 }
 
-void NewPricelistDialog::ClearInput()
+gint NewPricelistDialog::Run(string errorLabel)
 {
-	m_pNewPricelistErrorLabel->set_text("");
-	m_pNewPricelistDescription->set_text("");
-	m_pNewPricelistCurrencyComboBox->unset_active();
+	m_pNewPricelistErrorLabel->set_text(errorLabel);
+	if( errorLabel.empty() ) {
+		m_pNewPricelistDescription->set_text("");
+		m_pNewPricelistCurrencyComboBox->unset_active();
+		m_pNewPricelistDescription->grab_focus();
+	}
+	return m_pDialog->run();
+}
+
+void NewPricelistDialog::Hide()
+{
+	m_pDialog->hide();
 }
 
 string NewPricelistDialog::CurrencyCode()
 {
 	string code = "";
-  Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
-  if(iter) {
-    Gtk::TreeModel::Row row = *iter;
-    if(row) {
+	Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
+	if(iter) {
+		Gtk::TreeModel::Row row = *iter;
+		if(row) {
 			code = row[m_currenciesStore.m_code];
 		}
 	}
@@ -83,10 +96,10 @@ string NewPricelistDialog::CurrencyCode()
 string NewPricelistDialog::CurrencyName()
 {
 	string name = "";
-  Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
-  if(iter) {
-    Gtk::TreeModel::Row row = *iter;
-    if(row) {
+	Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
+	if(iter) {
+		Gtk::TreeModel::Row row = *iter;
+		if(row) {
 			name = row[m_currenciesStore.m_name];
 		}
 	}
@@ -96,10 +109,10 @@ string NewPricelistDialog::CurrencyName()
 double NewPricelistDialog::CurrencyRate()
 {
 	double rate = 1;
-  Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
-  if(iter) {
-    Gtk::TreeModel::Row row = *iter;
-    if(row) {
+	Gtk::TreeModel::iterator iter = m_pNewPricelistCurrencyComboBox->get_active();
+	if(iter) {
+		Gtk::TreeModel::Row row = *iter;
+		if(row) {
 			rate = row[m_currenciesStore.m_rate];
 		}
 	}

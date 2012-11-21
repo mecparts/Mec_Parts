@@ -22,6 +22,7 @@
 #ifndef _NEWPRICELISTDIALOG_H
 #define _NEWPRICELISTDIALOG_H
 
+#include <boost/regex.hpp>
 #include "mecparts.h"
 #include "currenciesStore.h"
 
@@ -33,16 +34,16 @@ class NewPricelistDialog
 		NewPricelistDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
 		virtual ~NewPricelistDialog();
 		
-		Gtk::Dialog *m_pDialog;
-	
-		void ErrorLabel(string text) { m_pNewPricelistErrorLabel->set_text(text); }
 		string Description() { return m_pNewPricelistDescription->get_text(); };
 		string CurrencyCode();
 		string CurrencyName();
 		double CurrencyRate();
-		void ClearInput();
+		gint Run(string errorLabel);
+		void Hide();
 		
 	private:
+		Gtk::Dialog *m_pDialog;
+	
 		bool on_delete_event(GdkEventAny *e);
 		void on_input_changed_event();
 		Gtk::Label *m_pNewPricelistErrorLabel;
@@ -50,7 +51,7 @@ class NewPricelistDialog
 		Gtk::ComboBox *m_pNewPricelistCurrencyComboBox;
 		Gtk::Button *m_pNewPricelistOkButton;
 		CurrenciesStore m_currenciesStore;
-
+		boost::regex m_whitespaceRegex;
 };
 
 #endif // _NEWPRICELISTDIALOG_H

@@ -1,5 +1,6 @@
 /*
- * selectPartsDialog.cpp
+ * selectPartsDialog.cpp: select a number of parts from the list of parts (used
+ *  in the collection tab to add a number of parts to the current collection).
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -27,7 +28,8 @@ using namespace std;
 SelectPartsDialog::SelectPartsDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder, Config *pCfg) :
 	m_pDialog(NULL),
 	m_pCfg(NULL),
-	m_pSelectPartsView(NULL)
+	m_pSelectPartsView(NULL),
+	m_pOkButton(NULL)
 {
 	m_pCfg = pCfg;
 	GET_WIDGET(pRefBuilder,"selectPartsDialog",m_pDialog)
@@ -36,7 +38,12 @@ SelectPartsDialog::SelectPartsDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder, Con
 	m_pDialog->signal_delete_event().connect(sigc::mem_fun(*this,&SelectPartsDialog::on_delete_event));
 
 	GET_WIDGET(pRefBuilder,"selectPartsView",m_pSelectPartsView)
-	Selected()->set_mode(Gtk::SELECTION_MULTIPLE);
+	m_pSelectPartsView->get_selection()->signal_changed().connect(sigc::mem_fun(*this,&SelectPartsDialog::on_selection_changed_event));
+	
+	GET_WIDGET(pRefBuilder,"selectPartsDialogOkButton",m_pOkButton);
+	
+	// allow adding multiple parts at a time
+	m_pSelectPartsView->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
 	int width,height;
 	m_pCfg->get_selectPartsDialog_size(width,height);
@@ -64,5 +71,22 @@ void SelectPartsDialog::on_hide_event()
 
 bool SelectPartsDialog::on_delete_event(GdkEventAny *e)
 {
-  return false;
+	return false;
+}
+
+void SelectPartsDialog::on_selection_changed_event()
+{
+	m_pOkButton->set_sensitive(SelectedCount()>0);
+}
+
+// 'de-select' all prior selections before showing the dialog
+gint SelectPartsDialog::Run()
+{
+	m_pSelectPartsView->get_selection()->unselect_all();
+	return m_pDialog->run();
+}
+
+void SelectPartsDialog::Hide()
+{
+	m_pDialog->hide();
 }
