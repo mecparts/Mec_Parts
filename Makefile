@@ -14,10 +14,25 @@ LIBS = -lboost_regex
 all: $(SRCS) $(EXE)
 
 install: mecparts
-	/bin/cp mecparts /home/wayneh/bin/mecdata/mecparts
-	/bin/cp mecparts.ui /home/wayneh/bin/mecdata/mecparts.ui
-	/bin/cp mecparts.png /home/wayneh/bin/mecdata/mecparts.png
-	/bin/cp mp-icon.png /home/wayneh/bin/mecdata/mp-icon.png
+	/bin/mkdir -p $(HOME)/Desktop
+	/bin/echo "" > $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "[Desktop Entry]" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Version=1.0" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Type=Application" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Terminal=false" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Path=$(HOME)/bin/mecdata" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Icon=$(HOME)/bin/mecdata/mecparts.png" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Exec=$(HOME)/bin/mecdata/mecparts" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Name=MecParts" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "Comment=An inventory system for Meccano parts" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/echo "StartupNotify=true" >> $(HOME)/Desktop/mecparts.desktop
+	/bin/chmod 755 $(HOME)/Desktop/mecparts.desktop
+	/bin/mkdir -p $(HOME)/bin/mecdata
+	/bin/cp mecparts $(HOME)/bin/mecdata/mecparts
+	/bin/cp mecparts.ui $(HOME)/bin/mecdata/mecparts.ui
+	/bin/cp mecparts.png $(HOME)/bin/mecdata/mecparts.png
+	/bin/cp mp-icon.png $(HOME)/bin/mecdata/mp-icon.png
+	/bin/cp -n meccano.base.db $(HOME)/bin/mecdata/meccano.db
 
 #dependencies of object files on header files
 config.o: config.h mecparts.h
@@ -37,7 +52,7 @@ $(EXE): $(OBJS)
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 
-# phoney target clean: use 'make clean' to delete intermediates
+# phony target clean: use 'make clean' to delete intermediates
 .PHONY: clean
 clean:
 	rm -f *.o *~ core $(EXE)
