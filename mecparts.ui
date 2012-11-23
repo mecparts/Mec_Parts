@@ -1965,6 +1965,7 @@
     <property name="title" translatable="yes">Create New Part</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
+    <property name="default_height">250</property>
     <property name="type_hint">normal</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="transient_for">mainWindow</property>
@@ -2123,7 +2124,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label8">
+              <object class="GtkLabel" id="newPartPriceLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="xalign">1</property>
@@ -2180,6 +2181,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="buffer">notesTextBuffer</property>
+                    <property name="accepts_tab">False</property>
                   </object>
                 </child>
               </object>

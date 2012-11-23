@@ -168,6 +168,7 @@ class MainWindow
 		void on_partsUnfilterSets_activated_event();
 		void on_parts_partNumber_clicked();
 		void on_parts_description_clicked();
+    void on_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void UpdateParts(string num,string field);
 		Gtk::Menu *m_pPartsContextMenu;
 		Gtk::MenuItem *m_pPartsViewPartMenuItem;
@@ -176,7 +177,9 @@ class MainWindow
 		Gtk::MenuItem *m_pPartsFilterSetsMenuItem;
 		Gtk::MenuItem *m_pPartsUnfilterSetsMenuItem;
 		int m_partsViewPriceColumnIndex;
-
+    Gtk::CellRendererText *m_pPartsPriceCellRenderer;
+    Gdk::Color m_defaultPriceCellForeColor;
+    Gdk::Color m_missingPriceCellForeColor;
 	protected:
 		SetsStore m_setsStore;
 		Glib::RefPtr<Gtk::ListStore> m_pSetsStore;
@@ -221,7 +224,7 @@ class MainWindow
 		void AddSetPartsCallback(const Gtk::TreeModel::iterator &iter);
 
 		NewPartDialog *m_pNewPartDialog;
-		
+    
 		NewSetDialog *m_pNewSetDialog;
 		
 		NewPricelistDialog *m_pNewPricelistDialog;

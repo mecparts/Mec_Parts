@@ -38,7 +38,7 @@ class NewPartDialog
 		string Size() { return m_pNewPartSize->get_text(); };
 		double Price();
 		string Notes() { return m_pNewPartNotes->get_buffer()->get_text(); };
-		gint Run(string errorLabel);
+		gint Run(string errorLabel,string currencyCode);
 		void Hide();
 		
 	private:
@@ -53,6 +53,7 @@ class NewPartDialog
 		Gtk::Entry *m_pNewPartPrice;
 		Gtk::TextView *m_pNewPartNotes;
 		Gtk::Button *m_pNewPartOkButton;
+    Gtk::Label *m_pNewPartPriceLabel;
 		boost::regex m_pnRegex;
 		boost::regex m_whitespaceRegex;
 };

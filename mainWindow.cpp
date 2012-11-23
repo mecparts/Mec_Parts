@@ -262,7 +262,8 @@ void MainWindow::CollectionSetup()
 
 	// the price of an individual part (non-editable in the collection view)
 	GET_TEXT_RENDERER("collectionPriceCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_price.index())
-	string propertyName = "background-gdk"; Gdk::Color bkColour= Gdk::Color(string("grey88"));
+	string propertyName = "background-gdk"; 
+  Gdk::Color bkColour= Gdk::Color(string("grey88"));
 	pCellRenderer->set_property(propertyName,bkColour);
 
 	// the 'total value' of each part in the collection (cost of an individual
@@ -720,8 +721,15 @@ void MainWindow::PartsSetup()
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_size_edited));
 
 	// parts price
-	GET_TEXT_RENDERER("partsPriceCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_price.index())
-	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
+	GET_TEXT_RENDERER("partsPriceCellRenderer",m_pPartsPriceCellRenderer,m_pPartsView,m_partsStore.m_price.index())
+	m_pPartsPriceCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
+  // zero prices will be shown in red
+  m_defaultPriceCellForeColor = m_pPartsPriceCellRenderer->property_foreground_gdk();
+  m_missingPriceCellForeColor = Gdk::Color(string("red"));
+	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_cell_data_func(*m_pPartsPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_price_column_drawn));
+	// set the title of the part price column to the currently selected
+	// currency's code (which defaults to the current locale)
+	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 
 	// parts notes
 	GET_TEXT_RENDERER("partsNotesCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_notes.index())
@@ -761,11 +769,29 @@ void MainWindow::PartsSetup()
 		throw "Could not get newPartDialog";
 	}
 
-	// set the title of the part price column to the currently selected
-	// currency's code (which defaults to the current locale)
-	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
-		
 	FillParts();
+}
+
+// show zero (ie not available or missing) prices in red
+//
+// Setting the text colour here revealed an odd quirk (bug!) in how the text is
+// drawn. Even though the default text colour I'm using is taken from the
+// widget itself, when I set it here, it comes out differently. Left to its own
+// devices, the TreeView text displays as a darkish grey *even though* when
+// queried it comes back as black. When I set the foreground to what the widget
+// told me it was, it comes out black. Very odd!
+void MainWindow::on_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
+{
+  Gtk::TreeModel::Row row = *iter;
+  double price = row[m_partsStore.m_price];
+  stringstream temp;
+  temp << fixed << setprecision(2) << price;
+  m_pPartsPriceCellRenderer->property_text() = temp.str();
+  if( price == 0.0 ) {
+    m_pPartsPriceCellRenderer->property_foreground_gdk() = m_missingPriceCellForeColor;
+  } else {
+    m_pPartsPriceCellRenderer->property_foreground_gdk() = m_defaultPriceCellForeColor;
+  }
 }
 
 // part number header clicked on: allow search by part number
@@ -952,7 +978,7 @@ void MainWindow::on_partsNewPart_activated_event()
 {
 	string errorLabel = "";
 	while( true ) {
-		if( m_pNewPartDialog->Run(errorLabel) == Gtk::RESPONSE_OK ) {
+		if( m_pNewPartDialog->Run(errorLabel,m_pricelistCurrencyCode) == Gtk::RESPONSE_OK ) {
 			// separate the part number into an (optional) alphabetic prefix,
 			// a (required) numeric part number and an (optional) alphanumeric suffix
 			boost::regex pnRegex("([A-Za-z]*)([0-9]+)([A-Za-z0-9]*)");
@@ -1016,7 +1042,7 @@ void MainWindow::on_partsNewPart_activated_event()
 				newRow[m_partsStore.m_description] = m_pNewPartDialog->Description();
 				newRow[m_partsStore.m_size] = m_pNewPartDialog->Size();
 				newRow[m_partsStore.m_notes] = m_pNewPartDialog->Notes();
-				newRow[m_partsStore.m_price] = m_pNewPartDialog->Price();
+				newRow[m_partsStore.m_price] = m_pNewPartDialog->Price()/m_pricelistCurrencyRate*m_baseCurrencyRate;
 				// add the part price to the current pricelist
 				// note that the price is assumed to be in the currency
 				// of the pricelist, not the currently selected currency
@@ -1124,7 +1150,8 @@ void MainWindow::ToMakeSetup()
 	// no columns in the to make view are editable
 	Gtk::CellRendererText *pCellRenderer = NULL;
 	GET_TEXT_RENDERER("toMakePriceCellRenderer",pCellRenderer,m_pToMakeView,m_toMakeStore.m_price.index())
-	string propertyName = "background-gdk"; Gdk::Color bkColour= Gdk::Color(string("grey88"));
+	string propertyName = "background-gdk"; 
+  Gdk::Color bkColour= Gdk::Color(string("grey88"));
 	pCellRenderer->set_property(propertyName,bkColour);
 
 	GET_TEXT_RENDERER("toMakeTotalCellRenderer",pCellRenderer,m_pToMakeView,m_toMakeStore.m_total.index())
@@ -1585,7 +1612,7 @@ void MainWindow::PricelistsSetup()
 	if( !m_pNewPricelistDialog ) {
 		throw "Could not get newPricelistDialog";
 	}
-
+  
 	// import csv dialog
 	GET_WIDGET(m_refBuilder,"importFileChooserDialog",m_pPricelistImportCsvDialog);
 	// file list filer (CSV and All)
