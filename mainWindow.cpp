@@ -112,7 +112,7 @@ MainWindow::MainWindow()
 	m_pNewCurrencyDialog = NULL;
 
 	// hook up to the database
-	m_pSql = new Sql(this,"meccano.db");
+	m_pSql = new Sql(this,"Database/meccano.db");
 
 	// Load the GtkBuilder file and instantiate its widgets
 	m_refBuilder = Gtk::Builder::create();
