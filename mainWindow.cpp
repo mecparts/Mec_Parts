@@ -110,9 +110,9 @@ MainWindow::MainWindow()
 	m_pNewSetDialog = NULL;
 	m_pNewPricelistDialog = NULL;
 	m_pNewCurrencyDialog = NULL;
-
+  m_baseDir = Glib::build_filename(Glib::get_home_dir(),".mecparts");
 	// hook up to the database
-	m_pSql = new Sql(this,"Database/meccano.db");
+	m_pSql = new Sql(this,Glib::build_filename(m_baseDir,"Database","meccano.db"));
 
 	// Load the GtkBuilder file and instantiate its widgets
 	m_refBuilder = Gtk::Builder::create();
@@ -120,7 +120,7 @@ MainWindow::MainWindow()
 		throw "null m_refBuilder";
 	}
 	try {
-		m_refBuilder->add_from_file("mecparts.ui");
+		m_refBuilder->add_from_file(Glib::build_filename(m_baseDir,"mecparts.ui"));
 	}
 	catch( const Glib::FileError &ex ) {
 		throw "FileError: "+ex.what();
@@ -212,7 +212,7 @@ void MainWindow::DisplayPicture(string partNumber,string description,string size
 	Gtk::Image *pImage = NULL;
 	bool foundFile = false;
 	for( int i=0; i<numImageExtensions; ++i ) {
-		string fileName = "Pictures/"+partNumber+imageExtensions[i];
+		string fileName = Glib::build_filename(m_baseDir,"Pictures",partNumber+imageExtensions[i]);
 		if( Glib::file_test(fileName,Glib::FILE_TEST_EXISTS) ) {
 			pImage = new Gtk::Image(Gdk::Pixbuf::create_from_file(fileName, 300, 300, true));
 			pictureDialog.set_image(*pImage);
@@ -2089,7 +2089,7 @@ int MainWindow::PopulateCurrenciesCallback(void *wnd, int argc, char **argv, cha
 void MainWindow::on_currenciesUpdateCurrency_activated_event()
 {
 	// a temporary storage place to download the XML exchange rate file to
-	string destFilename = Glib::build_filename(Glib::build_filename(Glib::get_user_cache_dir(),Glib::get_prgname()),"eurofxref-daily.xml");
+	string destFilename = Glib::build_filename(Glib::get_user_cache_dir(),Glib::get_prgname(),"eurofxref-daily.xml");
 	string destDir = Glib::path_get_dirname(destFilename);
 	// make sure the directory actually exists
 	g_mkdir_with_parents(destDir.c_str(), 0755);

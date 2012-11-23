@@ -64,6 +64,7 @@ class MainWindow
 		
 	private:
 		bool m_initialized;
+    string m_baseDir;
 		Glib::RefPtr<Gtk::Builder> m_refBuilder;
 		Config m_cfg;
 		Sql *m_pSql;
