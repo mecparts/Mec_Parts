@@ -26,26 +26,24 @@ app as a native C# application would be a better idea.
 How to install MecParts
 -----------------------
 
-I didn't even consider packaging this up into a .deb package. I don't know how
-and really wasn't at all interested in figuring it out. I did toy with the idea
-of putting the source into a git repository somewhere and although that may be
-a really good idea, I got lazy and didn't. If it does turn out that there's a
-community of Linux using Meccano-ites out there who want to help expand the
-program, it's something that can always be done. So right now if you really
-want to try it out, you'll have to build it from source. If you're reading
-this, you've probably already extracted the files into a convenient directory
-somewhere. Install the development libraries, do a 'make install' and you're
-done.
+I didn't even consider packaging this up into a .deb package (and as it turns
+out the Debian package manager isn't really intended for installing things
+into a user's home directory).  I did toy with the idea of putting the source
+into a git repository somewhere and although that may be a really good idea, I
+got lazy and didn't. If it does turn out that there's a community of Linux
+using Meccano-ites out there who want to help expand the program, it's
+something that can always be done. So right now if you really want to try it
+out, you'll have to build it from source. If you're reading this, you've
+probably already extracted the files into a convenient directory somewhere.
+Install the development libraries, do a 'make install' and you're done.
 
 It sounds so easy if you say it quick, doesn't it?
 
 On a freshly installed Ubuntu 12.04 system, I had to install the following four
 development libraries:
 
-sudo apt-get install libgtkmm-3.0-dev
-sudo apt-get install libboost-regex-dev
-sudo apt-get install libsqlite3-dev
-sudo apt-get install libxml2-dev
+sudo apt-get update
+sudo apt-get install libgtkmm-3.0-dev libboost-regex-dev libsqlite3-dev libxml2-dev
 
 They installed a whole bunch of other dependencies along the way, including the
 compiler. Once they are all installed, a simple 'make install' does the rest.
@@ -144,7 +142,10 @@ In general:
   against the euro. Rated can be manually adjusted as you like, or you can
   right click on the currencies list and automatically adjust them to the
   latest rates from the European Central Bank.
-    
+* The format of the csv file used to import prices is very simple. Each line
+  consists of a part number, a comma, and a price (in the currency of the
+  pricelist you're importing into). No column headers, nothing fancy.
+
 I've included a sample database with the program. There's 76 sets, 1170 parts,
 3 pricelists and 8 currencies included to get you going. The first set in the
 list is called 'My Collection' and it's exactly what it says it is. Right click
@@ -171,5 +172,5 @@ Enjoy!
 Wayne Hortensius
 whortens@shaw.ca
 
-November 23, 2012
+November 26, 2012
 

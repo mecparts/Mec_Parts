@@ -207,8 +207,12 @@ void MainWindow::DisplayPicture(string partNumber,string description,string size
 	static string imageExtensions[] = {".jpg",".gif",".png",".bmp",".jpeg",".pcx",".tif",".tiff"};
 	static int numImageExtensions = sizeof(imageExtensions)/sizeof(string);
 
-	Gtk::MessageDialog pictureDialog(*m_pWindow,partNumber,false,Gtk::MESSAGE_INFO,Gtk::BUTTONS_OK);
-	pictureDialog.set_secondary_text(description+", "+size+"\n"+notes);
+	Gtk::MessageDialog pictureDialog(*m_pWindow,partNumber,false,Gtk::MESSAGE_INFO,Gtk::BUTTONS_CLOSE);
+  if( !size.empty() ) {
+    pictureDialog.set_secondary_text(description+", "+size+"\n"+notes);
+  } else {
+    pictureDialog.set_secondary_text(description+"\n"+notes);
+  }
 	Gtk::Image *pImage = NULL;
 	bool foundFile = false;
 	for( int i=0; i<numImageExtensions; ++i ) {

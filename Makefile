@@ -31,11 +31,11 @@ install: mecparts
 	/bin/echo "Comment=An inventory system for Meccano parts" >> $(HOME)/Desktop/mecparts.desktop
 	/bin/echo "StartupNotify=true" >> $(HOME)/Desktop/mecparts.desktop
 	/bin/chmod 755 $(HOME)/Desktop/mecparts.desktop
-	/bin/cp mecparts $(HOME)/bin/mecparts
-	/bin/cp mecparts.ui $(HOME)/.mecparts/mecparts.ui
-	/bin/cp Icons/mecparts.png $(HOME)/.mecparts/Icons/mecparts.png
-	/bin/cp Icons/mp-icon.png $(HOME)/.mecparts/Icons/mp-icon.png
-	/bin/cp -n meccano.base.db $(HOME)/.mecparts/Database/meccano.db
+	/bin/cp -a mecparts $(HOME)/bin/mecparts
+	/bin/cp -a mecparts.ui $(HOME)/.mecparts/mecparts.ui
+	/bin/cp -a Icons/mecparts.png $(HOME)/.mecparts/Icons/mecparts.png
+	/bin/cp -an meccano.base.db $(HOME)/.mecparts/Database/meccano.db
+	/bin/cp -an Pictures/* $(HOME)/.mecparts/Pictures
 
 #dependencies of object files on header files
 config.o: config.h mecparts.h
