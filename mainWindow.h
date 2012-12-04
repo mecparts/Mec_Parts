@@ -37,7 +37,7 @@
 #include "newSetDialog.h"
 #include "newPricelistDialog.h"
 #include "newCurrencyDialog.h"
-#include "importPricesResultDialog.h"
+#include "importResultDialog.h"
 #include "sql.h"
 
 class MainWindow
@@ -115,8 +115,8 @@ class MainWindow
 		Gtk::MenuItem *m_pPricelistsImportPricesMenuItem;
 		Gtk::MenuItem *m_pPricelistsNewPricelistMenuItem;
 		Gtk::MenuItem *m_pPricelistsDeletePricelistMenuItem;
-		Gtk::FileChooserDialog *m_pPricelistImportCsvDialog;
-		ImportPricesResultDialog *m_pImportPricesResultDialog;
+		Gtk::FileChooserDialog *m_pImportFileChooserDialog;
+		ImportResultDialog *m_pImportResultDialog;
 
 	protected:
 		CollectionStore m_collectionStore;
@@ -132,6 +132,7 @@ class MainWindow
 		Gtk::MenuItem *m_pCollectionAddPartMenuItem;
 		Gtk::MenuItem *m_pCollectionDeletePartMenuItem;
 		Gtk::MenuItem *m_pCollectionAddSetMenuItem;
+    Gtk::MenuItem *m_pCollectionImportPartsMenuItem;
 		string m_collectionNumber;
 		string m_collectionDescription;
 		int m_collectionViewPriceColumnIndex;
@@ -143,6 +144,7 @@ class MainWindow
 		void on_collectionAddPart_activated_event();
 		void on_collectionDeletePart_activated_event();
 		void on_collectionAddSet_activated_event();
+    void on_collectionImportParts_activated_event();
 		void on_collection_partNumber_clicked();
 		void on_collection_description_clicked();
 		void AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool updateIfFound);

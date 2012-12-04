@@ -68,8 +68,8 @@ MainWindow::MainWindow()
 	m_pPricelistsImportPricesMenuItem = NULL;
 	m_pPricelistsNewPricelistMenuItem = NULL;
 	m_pPricelistsDeletePricelistMenuItem = NULL;
-	m_pPricelistImportCsvDialog = NULL;
-	m_pImportPricesResultDialog = NULL;
+	m_pImportFileChooserDialog = NULL;
+	m_pImportResultDialog = NULL;
 	m_pCollectionView = NULL;
 	m_pCollectionCountCost = NULL;
 	m_pCollectionSetComboBox = NULL;
@@ -78,6 +78,7 @@ MainWindow::MainWindow()
 	m_pCollectionAddPartMenuItem = NULL;
 	m_pCollectionDeletePartMenuItem = NULL;
 	m_pCollectionAddSetMenuItem = NULL;
+  m_pCollectionImportPartsMenuItem = NULL;
 	m_collectionNumber = "";
 	m_collectionDescription = "";
 	m_collectionPartsCount = 0;
@@ -120,7 +121,14 @@ MainWindow::MainWindow()
 		throw "null m_refBuilder";
 	}
 	try {
-		m_refBuilder->add_from_file(Glib::build_filename(m_baseDir,"mecparts.ui"));
+    // look for the ui first in the directory containing the executable
+    // (used during debugging) and if it's not found, look in the usual
+    // base directory
+    string uiFile = "mecparts.ui";
+    if( !Glib::file_test(uiFile,Glib::FILE_TEST_EXISTS) ) {
+      uiFile = Glib::build_filename(m_baseDir,uiFile);
+    }
+		m_refBuilder->add_from_file(uiFile);
 	}
 	catch( const Glib::FileError &ex ) {
 		throw "FileError: "+ex.what();
@@ -301,6 +309,9 @@ void MainWindow::CollectionSetup()
 	GET_WIDGET(m_refBuilder,"collectionAddSetMenuItem",m_pCollectionAddSetMenuItem)
 	m_pCollectionAddSetMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_collectionAddSet_activated_event));
 
+  GET_WIDGET(m_refBuilder,"collectionImportPartsMenuItem",m_pCollectionImportPartsMenuItem)
+  m_pCollectionImportPartsMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_collectionImportParts_activated_event));
+  
 	// handle a click on the part number or part description column header
 	// (allows searching the collection on either the part number or description)
 	m_pCollectionView->get_column(m_collectionStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_partNumber_clicked));
@@ -453,6 +464,70 @@ void MainWindow::on_collectionAddSet_activated_event()
 		WaitCursor(false);
 	} else {
 		m_pSelectSetDialog->Hide();
+	}
+}
+
+void MainWindow::on_collectionImportParts_activated_event()
+{
+	// get a csv file
+	int response = m_pImportFileChooserDialog->run();
+	m_pImportFileChooserDialog->hide();
+	if( response == Gtk::RESPONSE_OK ) {
+		// grab the csv file name
+		if( !m_pImportFileChooserDialog->get_filename().empty() ) {
+			// set up to read the csv file
+			CsvReader reader(m_pImportFileChooserDialog->get_filename());
+			vector<string> fields;
+
+			WaitCursor(true);
+			int numUpdated = 0;                 // # of part prices updated
+			int numInserted = 0;                // # of part prices inserted
+			vector<string> unknownPartNumbers;  // part numbers not found in database
+			while( reader.Parse(fields) ) {
+				// some basic data checking: 2, and only 2, non empty fields
+				if( fields.size() == 2 && !fields[0].empty() && !fields[1].empty() ) {
+					int count = atoi(fields[1].c_str());
+					string num = fields[0];
+					// trying updating an existing part count
+					stringstream sql;
+					sql
+						<< "UPDATE set_parts SET count=count+" << count 
+						<< " WHERE part_num='" << m_pSql->Escape(num) 
+            << "' AND set_num='" << m_pSql->Escape(m_collectionNumber) << "'";
+					// ExecUpdate returns the # of rows updated. 0 rows mean the set
+					// didn't already have this part
+					if( m_pSql->ExecUpdate(&sql) == 0 ) {
+						// This part didn't already exist in the currently selected set.
+						// There are 2 possibilities. The 1st is that the part itself exists,
+						// but has never been added to this set. That's fine; we'll go
+						// ahead and add it. But it's also possible that the part itself
+						// doesn't even exist, in which case we want to skip adding it.
+						//
+						// It should really be reported at some point too.
+						if( PartExists(num) ) {
+							sql.str("");
+							sql
+								<< "INSERT INTO set_parts(set_num,part_num,count) VALUES ('"
+								<< m_pSql->Escape(m_collectionNumber)
+								<< "','" << m_pSql->Escape(num) << "',"
+								<< count << ")";
+							m_pSql->ExecInsert(&sql);
+							++numInserted;
+						} else {
+							unknownPartNumbers.push_back(num);
+						}
+					} else {
+						++numUpdated;
+					}
+				}
+			}
+			WaitCursor(false);
+			FillCollection();
+			FillToMake();
+			// show the import results
+			m_pImportResultDialog->Run(numInserted,numUpdated,unknownPartNumbers);
+			m_pImportResultDialog->Hide();
+		}
 	}
 }
 
@@ -1618,16 +1693,16 @@ void MainWindow::PricelistsSetup()
 	}
   
 	// import csv dialog
-	GET_WIDGET(m_refBuilder,"importFileChooserDialog",m_pPricelistImportCsvDialog);
+	GET_WIDGET(m_refBuilder,"importFileChooserDialog",m_pImportFileChooserDialog);
 	// file list filer (CSV and All)
 	Glib::RefPtr<Gtk::FileFilter> filter_csv = Gtk::FileFilter::create();
 	filter_csv->set_name("CSV files");
 	filter_csv->add_mime_type("text/csv");
-	m_pPricelistImportCsvDialog->add_filter(filter_csv);
+	m_pImportFileChooserDialog->add_filter(filter_csv);
 	Glib::RefPtr<Gtk::FileFilter> filter_any = Gtk::FileFilter::create();
 	filter_any->set_name("All files");
 	filter_any->add_pattern("*");
-	m_pPricelistImportCsvDialog->add_filter(filter_any);
+	m_pImportFileChooserDialog->add_filter(filter_any);
 
 	// start up with the first pricelist selected
 	// I probably should store the selected pricelist in the config file...
@@ -1642,9 +1717,9 @@ void MainWindow::PricelistsSetup()
 	} else {
 		throw "Oh no! No priceslists in database";
 	}
-	m_pImportPricesResultDialog = new ImportPricesResultDialog(m_refBuilder);
-	if( !m_pImportPricesResultDialog ) {
-		throw "Could not get importPricesResultDialog";
+	m_pImportResultDialog = new ImportResultDialog(m_refBuilder);
+	if( !m_pImportResultDialog ) {
+		throw "Could not get importResultDialog";
 	}
 	// refresh the prices in the chosen currency
 	RefreshPrices();
@@ -1812,16 +1887,16 @@ void MainWindow::on_pricelists_button_pressed(GdkEventButton *pEvent)
 void MainWindow::on_pricelistsImportPrices_activated_event()
 {
 	// get a csv file
-	int response = m_pPricelistImportCsvDialog->run();
-	m_pPricelistImportCsvDialog->hide();
+	int response = m_pImportFileChooserDialog->run();
+	m_pImportFileChooserDialog->hide();
 	if( response == Gtk::RESPONSE_OK ) {
 		// grab the csv file name
-		if( !m_pPricelistImportCsvDialog->get_filename().empty() ) {
+		if( !m_pImportFileChooserDialog->get_filename().empty() ) {
 			Gtk::TreeModel::iterator iter = m_pPricelistsView->get_selection()->get_selected();
 			// selected pricelist number
 			gint64 selectedPricelistNum = (*iter)[m_pricelistsStore.m_num];
 			// set up to read the csv file
-			CsvReader reader(m_pPricelistImportCsvDialog->get_filename());
+			CsvReader reader(m_pImportFileChooserDialog->get_filename());
 			vector<string> fields;
 
 			WaitCursor(true);
@@ -1869,8 +1944,8 @@ void MainWindow::on_pricelistsImportPrices_activated_event()
 			FillCollection();
 			FillToMake();
 			// show the import results
-			m_pImportPricesResultDialog->Run(numInserted,numUpdated,unknownPartNumbers);
-			m_pImportPricesResultDialog->Hide();
+			m_pImportResultDialog->Run(numInserted,numUpdated,unknownPartNumbers);
+			m_pImportResultDialog->Hide();
 		}
 	}
 }
