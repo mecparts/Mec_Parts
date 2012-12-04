@@ -28,14 +28,15 @@ How to install MecParts
 
 I didn't even consider packaging this up into a .deb package (and as it turns
 out the Debian package manager isn't really intended for installing things
-into a user's home directory).  I did toy with the idea of putting the source
-into a git repository somewhere and although that may be a really good idea, I
-got lazy and didn't. If it does turn out that there's a community of Linux
-using Meccano-ites out there who want to help expand the program, it's
-something that can always be done. So right now if you really want to try it
-out, you'll have to build it from source. If you're reading this, you've
-probably already extracted the files into a convenient directory somewhere.
-Install the development libraries, do a 'make install' and you're done.
+into a user's home directory).  I did eventually put the source into a 
+repository at github. Assuming you already have git installed on your system,
+you can grab a copy of the repository with
+
+git clone git://github.com/mecparts/MecParts.git
+
+That'll create a MecParts directory in your current directory and fill it with
+the MecParts source code. Install the development libraries, cd into MecParts,
+do a 'make install' and you're done.
 
 It sounds so easy if you say it quick, doesn't it?
 
@@ -46,10 +47,11 @@ sudo apt-get update
 sudo apt-get install libgtkmm-3.0-dev libboost-regex-dev libsqlite3-dev libxml2-dev
 
 They installed a whole bunch of other dependencies along the way, including the
-compiler. Once they are all installed, a simple 'make install' does the rest.
-You get an icon on the desktop, a sample database with dozens of sets and
-hundreds of parts and even a smattering of part pictures. You can add your own
-part pictures into the Pictures sub directory.
+compiler. Once they are all installed, a simple 'make install' in the MecParts
+directory does the rest. You get an icon on the desktop, a sample database
+with dozens of sets and hundreds of parts and even a smattering of part
+pictures. You can add your own part pictures into the ~/.mecparts/Pictures sub 
+directory.
 
 And why didn't I include a full set of part pictures? The main reason is size.
 My Pictures sub directory is currently 166Mb. That's about 1,000 times as large
@@ -172,5 +174,5 @@ Enjoy!
 Wayne Hortensius
 whortens@shaw.ca
 
-November 26, 2012
+December 3, 2012
 
