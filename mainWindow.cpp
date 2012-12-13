@@ -112,17 +112,11 @@ MainWindow::MainWindow()
 	}
 	
 	// set up the contents of each tab in the main window
-	cout << "Currencies" << endl;
 	CurrenciesSetup();
-	cout << "Pricelists" << endl;
 	PricelistsSetup();
-	cout << "Parts" << endl;
 	PartsSetup();
-	cout << "Sets" << endl;
 	SetsSetup();
-	cout << "Collection" << endl;
 	CollectionSetup();
-	cout << "To Make" << endl;
 	ToMakeSetup();
 
 	// let all refresh/refill routines know that from now on they should run
@@ -1932,7 +1926,6 @@ void MainWindow::RefreshPrices()
 {
 	// Create a view of the part prices table in the currently chosen currency.
 	// The part prices are stored in the pricelist's currency.
-	cout << "creating v_part_prices" << endl;
 	stringstream sql;
 	sql <<
 		"DROP VIEW IF EXISTS v_part_prices;" <<
@@ -1958,7 +1951,6 @@ void MainWindow::RefreshPrices()
 			"p.pnPrefix,p.pnDigits,p.pnSuffix";
 	m_pSql->ExecNonQuery(&sql);
 	if( m_initialized ) {
-		cout << "Refreshing prices" << endl;
 		sql.str("");
 		sql <<
 			"SELECT " <<
@@ -2360,7 +2352,6 @@ void MainWindow::on_currency_combobox_changed()
 	m_baseCurrencyCode = (*iter)[m_currenciesStore.m_code];
 	m_baseCurrencyRate = (*iter)[m_currenciesStore.m_rate];
 	if( m_initialized ) {
-		cout << "currency combobox changed" << endl;
 		m_pCollectionView->get_column(m_collectionViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 		m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 		m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
