@@ -43,9 +43,9 @@ class NewCurrencyDialog
 		void Hide();
 		
 	private:
-		bool on_delete_event(GdkEventAny *e);
-		void on_code_changed_event();
-		void on_input_changed_event();
+		bool on_delete(GdkEventAny *e);
+		void on_code_changed();
+		void on_input_changed();
 		Gtk::Label *m_pNewCurrencyErrorLabel;
 		Gtk::Entry *m_pNewCurrencyDescription;
 		Gtk::Entry *m_pNewCurrencyCode;

@@ -34,16 +34,16 @@ NewCurrencyDialog::NewCurrencyDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 {
 	
 	GET_WIDGET(pRefBuilder,"newCurrencyDialog",m_pDialog)
-	m_pDialog->signal_delete_event().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_delete_event));
+	m_pDialog->signal_delete_event().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_delete));
 
 	GET_WIDGET(pRefBuilder,"newCurrencyErrorLabel",m_pNewCurrencyErrorLabel)
 	GET_WIDGET(pRefBuilder,"newCurrencyOkButton",m_pNewCurrencyOkButton)
 	GET_WIDGET(pRefBuilder,"currencyDescriptionEntry",m_pNewCurrencyDescription)
-	m_pNewCurrencyDescription->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_input_changed_event));
+	m_pNewCurrencyDescription->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_input_changed));
 	GET_WIDGET(pRefBuilder,"currencyCodeEntry",m_pNewCurrencyCode);
-	m_pNewCurrencyCode->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_code_changed_event));
+	m_pNewCurrencyCode->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_code_changed));
 	GET_WIDGET(pRefBuilder,"currencyRateEntry",m_pNewCurrencyRate);
-	m_pNewCurrencyRate->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_input_changed_event));
+	m_pNewCurrencyRate->signal_changed().connect(sigc::mem_fun(*this,&NewCurrencyDialog::on_input_changed));
 	m_codeRegex.assign("^[A-Z]{3}$");
 	m_whitespaceRegex.assign("^\\s*$");
 }
@@ -53,24 +53,24 @@ NewCurrencyDialog::~NewCurrencyDialog()
 	delete m_pDialog;
 }
 
-bool NewCurrencyDialog::on_delete_event(GdkEventAny *e)
+bool NewCurrencyDialog::on_delete(GdkEventAny *e)
 {
 	return false;
 }
 
-void NewCurrencyDialog::on_code_changed_event()
+void NewCurrencyDialog::on_code_changed()
 {
 	string code = CurrencyCode();
 	transform(code.begin(), code.end(), code.begin(), (int(*)(int)) toupper);
 	m_pNewCurrencyCode->set_text(code);
-	on_input_changed_event();
+	on_input_changed();
 }
 
 // the minimum requirements for allowing the creation of a new currency are:
 // a non blank currency name
 // a 3 letter currency code
 // an positive exchange rate
-void NewCurrencyDialog::on_input_changed_event()
+void NewCurrencyDialog::on_input_changed()
 {
 	m_pNewCurrencyOkButton->set_sensitive(!boost::regex_search(Description(),m_whitespaceRegex) && boost::regex_search(CurrencyCode(),m_codeRegex) && CurrencyRate()>0);
 	m_pNewCurrencyErrorLabel->set_text("");
@@ -80,10 +80,10 @@ gint NewCurrencyDialog::Run(string errorLabel)
 {
 	m_pNewCurrencyErrorLabel->set_text(errorLabel);
 	if( errorLabel.empty() ) {
-	  m_pNewCurrencyDescription->set_text("");
-	  m_pNewCurrencyCode->set_text("");
-	  m_pNewCurrencyRate->set_text("");
-	  m_pNewCurrencyDescription->grab_focus();
+		m_pNewCurrencyDescription->set_text("");
+		m_pNewCurrencyCode->set_text("");
+		m_pNewCurrencyRate->set_text("");
+		m_pNewCurrencyDescription->grab_focus();
 	}
 	return m_pDialog->run();
 }

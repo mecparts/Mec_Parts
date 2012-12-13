@@ -26,11 +26,12 @@
 #include <iostream>
 #include <string>
 
-#define GET_WIDGET(builder,glade_name,pointer) builder->get_widget(glade_name,pointer); if(!pointer) throw "Could not get " glade_name " widget";
-#define GET_OBJECT(builder,glade_name,pointer,ptr_cast) pointer = Glib::RefPtr<Gtk::ptr_cast>::cast_static(builder->get_object(glade_name)); if( !pointer) throw "Could not get " glade_name " object";
-#define GET_TEXT_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererText *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object";
-#define GET_TOGGLE_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererToggle *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object";
-#define GET_COMBO_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererCombo *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object";
+#define DEBUG_GLADE FALSE
+#define GET_WIDGET(builder,glade_name,pointer) builder->get_widget(glade_name,pointer); if(!pointer) throw "Could not get " glade_name " widget"; if( DEBUG_GLADE ) { cout << glade_name << " loaded" << endl; cout.flush(); }
+#define GET_OBJECT(builder,glade_name,pointer,ptr_cast) pointer = Glib::RefPtr<Gtk::ptr_cast>::cast_static(builder->get_object(glade_name)); if( !pointer) throw "Could not get " glade_name " object"; if( DEBUG_GLADE ) { cout << glade_name << " loaded" << endl; cout.flush(); }
+#define GET_TEXT_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererText *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object"; if( DEBUG_GLADE ) { cout <<  rendererName << " loaded" << endl; cout.flush(); }
+#define GET_TOGGLE_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererToggle *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object"; if( DEBUG_GLADE ) { cout rendererName << " loaded" << endl; cout.flush(); }
+#define GET_COMBO_RENDERER(rendererName,pointer,view,index) pointer = dynamic_cast<Gtk::CellRendererCombo *>(view->get_column_cell_renderer(index)); if( !pointer ) throw "Could not get " rendererName " object"; if( DEBUG_GLADE ) { cout << rendererName << " loaded" << endl; cout.flush(); }
 #define GET_ITER(iter,dataStore,pathStr) Gtk::TreeIter iter = dataStore->get_iter(pathStr); if( !iter ) { throw "No iter for "+pathStr; }
 
 #endif

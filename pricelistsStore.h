@@ -30,7 +30,6 @@ using namespace std;
 class PricelistsStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
-		Gtk::TreeModelColumn<bool> m_use;
 		Gtk::TreeModelColumn<string> m_description;
 		Gtk::TreeModelColumn<string> m_currencyName;
 		Gtk::TreeModelColumn<string> m_currencyCode;
@@ -39,7 +38,6 @@ class PricelistsStore : public Gtk::TreeModel::ColumnRecord
 		
 		PricelistsStore()
 		{
-			add(m_use);
 			add(m_description);
 			add(m_currencyName);
 			add(m_currencyCode);

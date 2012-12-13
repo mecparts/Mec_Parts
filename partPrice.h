@@ -1,5 +1,5 @@
 /*
- * csvReader.h
+ * partprice.h
  * 
  * Copyright 2012 Wayne Hortensius <whortens@shaw.ca>
  * 
@@ -18,27 +18,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
-#ifndef _CSVREADER_H
-#define _CSVREADER_H
+
+#ifndef _PARTPRICE_H
+#define _PARTPRICE_H
 
 #include <string>
-#include <vector>
-#include <fstream>
+#include "mecparts.h"
 
 using namespace std;
 
-class CsvReader
+class PartPrice
 {
 	public:
-		CsvReader(string csvFilename);
-		virtual ~CsvReader();
-		bool Parse(vector<string> &fields);
-
+		PartPrice(string num,double price);
+		virtual ~PartPrice();
+		string PartNum() { return m_partNum; }
+		double Price() { return m_price; }
 	private:
-		ifstream m_ifs;
-		string m_csvFilename;
-
-		void Parse(string line,vector<string> &fields);
-		string Strip(string field);
+		string m_partNum;
+		double m_price;
 };
 #endif

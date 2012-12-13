@@ -31,14 +31,12 @@ class CurrenciesStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
 
-		Gtk::TreeModelColumn<bool> m_use;
 		Gtk::TreeModelColumn<string> m_code;
 		Gtk::TreeModelColumn<string> m_name;
 		Gtk::TreeModelColumn<gdouble> m_rate;
 		
 		CurrenciesStore()
 		{
-			add(m_use);
 			add(m_code);
 			add(m_name);
 			add(m_rate);

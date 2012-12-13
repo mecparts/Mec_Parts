@@ -111,8 +111,6 @@
   </object>
   <object class="GtkListStore" id="currenciesStore">
     <columns>
-      <!-- column-name useCurrency -->
-      <column type="gboolean"/>
       <!-- column-name currencyCode -->
       <column type="gchararray"/>
       <!-- column-name currencyName -->
@@ -800,42 +798,20 @@
     <property name="title" translatable="yes">Meccano Parts</property>
     <property name="icon">Icons/mecparts.png</property>
     <child>
-      <object class="GtkNotebook" id="mainWindowNotebook">
+      <object class="GtkBox" id="box4">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <child>
-          <object class="GtkVBox" id="collectionVbox">
+          <object class="GtkBox" id="box5">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkHBox" id="collectionHbox">
+              <object class="GtkComboBox" id="pricelistComboBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <child>
-                  <object class="GtkComboBox" id="collectionSetComboBox">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="model">setsStore</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="collectionCountCost">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes"> </property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="padding">2</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                <property name="model">pricelistsStore</property>
+                <property name="entry_text_column">1</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -844,186 +820,62 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="collectionScrolledWindow">
+              <object class="GtkComboBox" id="currencyComboBox">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <child>
-                  <object class="GtkTreeView" id="collectionView">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="model">collectionStore</property>
-                    <property name="headers_clickable">False</property>
-                    <property name="search_column">0</property>
-                    <property name="enable_grid_lines">both</property>
-                    <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection3"/>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="collectionPartNumColumn">
-                        <property name="title">Part #</property>
-                        <property name="clickable">True</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="collectionPartNumCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="collectionDescriptionColumn">
-                        <property name="title">Description</property>
-                        <property name="clickable">True</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="collectionDescriptionCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
-                          <attributes>
-                            <attribute name="text">1</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="collectionSizeColumn">
-                        <property name="title">Size</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="collectionSizeCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
-                          <attributes>
-                            <attribute name="text">2</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="collectionCountColumn">
-                        <property name="title">Count</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="collectionCountCellRendererText">
-                            <property name="alignment">right</property>
-                            <property name="editable">True</property>
-                          </object>
-                          <attributes>
-                            <attribute name="text">3</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
+                <property name="can_focus">False</property>
+                <property name="model">currenciesStore</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </object>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="collectionTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">_Collection</property>
-            <property name="use_underline">True</property>
-          </object>
           <packing>
-            <property name="tab_fill">False</property>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <object class="GtkScrolledWindow" id="partsScrolledWindow">
+          <object class="GtkNotebook" id="mainWindowNotebook">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkTreeView" id="partsView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">partsStore</property>
-                <property name="headers_clickable">False</property>
-                <property name="search_column">0</property>
-                <property name="enable_grid_lines">both</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection4"/>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="partsPartNumberColumn">
-                    <property name="title">Part No.</property>
-                    <property name="clickable">True</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="partsPartNumberCellRendererText">
-                        <property name="background">grey88</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="partsDescriptionColumn">
-                    <property name="title">Description</property>
-                    <property name="clickable">True</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="partsDescriptionCellRendererText">
-                        <property name="editable">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="partsSizeColumn">
-                    <property name="title">Size</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="partsSizeCellRendererText">
-                        <property name="editable">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="partsTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">_Parts</property>
-            <property name="use_underline">True</property>
-          </object>
-          <packing>
-            <property name="position">1</property>
-            <property name="tab_fill">False</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkVBox" id="toMakeVbox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkHBox" id="hbox2">
+              <object class="GtkVBox" id="collectionVbox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="spacing">5</property>
                 <child>
-                  <object class="GtkLabel" id="label16">
+                  <object class="GtkBox" id="box6">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Have:</property>
+                    <child>
+                      <object class="GtkComboBox" id="collectionSetComboBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="model">setsStore</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="collectionCountCost">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes"> </property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="padding">2</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -1032,10 +884,77 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="toMakeHaveComboBox">
+                  <object class="GtkScrolledWindow" id="collectionScrolledWindow">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="model">setsStore</property>
+                    <property name="can_focus">True</property>
+                    <child>
+                      <object class="GtkTreeView" id="collectionView">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">collectionStore</property>
+                        <property name="headers_clickable">False</property>
+                        <property name="search_column">0</property>
+                        <property name="enable_grid_lines">both</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="treeview-selection3"/>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="collectionPartNumColumn">
+                            <property name="title">Part #</property>
+                            <property name="clickable">True</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="collectionPartNumCellRendererText">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="collectionDescriptionColumn">
+                            <property name="title">Description</property>
+                            <property name="clickable">True</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="collectionDescriptionCellRendererText">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="collectionSizeColumn">
+                            <property name="title">Size</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="collectionSizeCellRendererText">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">2</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="collectionCountColumn">
+                            <property name="title">Count</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="collectionCountCellRendererText">
+                                <property name="alignment">right</property>
+                                <property name="editable">True</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">3</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -1043,81 +962,40 @@
                     <property name="position">1</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkLabel" id="label17">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Want:</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkComboBox" id="toMakeWantComboBox">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="model">setsStore</property>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label18">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Cost:</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="position">4</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="toMakeCost">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">5</property>
-                  </packing>
-                </child>
+              </object>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="collectionTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Collection</property>
+                <property name="use_underline">True</property>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="tab_fill">False</property>
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="toMakeScrolledWindow">
+              <object class="GtkScrolledWindow" id="partsScrolledWindow">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <child>
-                  <object class="GtkTreeView" id="toMakeView">
+                  <object class="GtkTreeView" id="partsView">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="model">toMakeStore</property>
+                    <property name="model">partsStore</property>
                     <property name="headers_clickable">False</property>
                     <property name="search_column">0</property>
                     <property name="enable_grid_lines">both</property>
                     <child internal-child="selection">
-                      <object class="GtkTreeSelection" id="treeview-selection5"/>
+                      <object class="GtkTreeSelection" id="treeview-selection4"/>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="toMakePartNumberColumn">
+                      <object class="GtkTreeViewColumn" id="partsPartNumberColumn">
                         <property name="title">Part No.</property>
                         <property name="clickable">True</property>
                         <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext15">
+                          <object class="GtkCellRendererText" id="partsPartNumberCellRendererText">
                             <property name="background">grey88</property>
                           </object>
                           <attributes>
@@ -1127,12 +1005,12 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="toMakeDescriptionColumn">
+                      <object class="GtkTreeViewColumn" id="partsDescriptionColumn">
                         <property name="title">Description</property>
                         <property name="clickable">True</property>
                         <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext16">
-                            <property name="background">grey88</property>
+                          <object class="GtkCellRendererText" id="partsDescriptionCellRendererText">
+                            <property name="editable">True</property>
                           </object>
                           <attributes>
                             <attribute name="text">1</attribute>
@@ -1141,27 +1019,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkTreeViewColumn" id="toMakeSizeColumn">
+                      <object class="GtkTreeViewColumn" id="partsSizeColumn">
                         <property name="title">Size</property>
                         <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext17">
-                            <property name="background">grey88</property>
+                          <object class="GtkCellRendererText" id="partsSizeCellRendererText">
+                            <property name="editable">True</property>
                           </object>
                           <attributes>
                             <attribute name="text">2</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkTreeViewColumn" id="toMakeCountColumn">
-                        <property name="title">Count</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext18">
-                            <property name="background">grey88</property>
-                          </object>
-                          <attributes>
-                            <attribute name="text">3</attribute>
                           </attributes>
                         </child>
                       </object>
@@ -1170,234 +1035,390 @@
                 </child>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
                 <property name="position">1</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="partsTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Parts</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="position">1</property>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVBox" id="toMakeVbox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkHBox" id="hbox2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="spacing">5</property>
+                    <child>
+                      <object class="GtkLabel" id="label16">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Have:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBox" id="toMakeHaveComboBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="model">setsStore</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label17">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Want:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBox" id="toMakeWantComboBox">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="model">setsStore</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label18">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Cost:</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="toMakeCost">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">5</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="toMakeScrolledWindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <child>
+                      <object class="GtkTreeView" id="toMakeView">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">toMakeStore</property>
+                        <property name="headers_clickable">False</property>
+                        <property name="search_column">0</property>
+                        <property name="enable_grid_lines">both</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="treeview-selection5"/>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="toMakePartNumberColumn">
+                            <property name="title">Part No.</property>
+                            <property name="clickable">True</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext15">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="toMakeDescriptionColumn">
+                            <property name="title">Description</property>
+                            <property name="clickable">True</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext16">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="toMakeSizeColumn">
+                            <property name="title">Size</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext17">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">2</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="toMakeCountColumn">
+                            <property name="title">Count</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext18">
+                                <property name="background">grey88</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">3</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="toMakeTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_To Make</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="position">2</property>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="setsScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <object class="GtkTreeView" id="setsView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">setsStore</property>
+                    <property name="search_column">0</property>
+                    <property name="enable_grid_lines">both</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection6"/>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="setNumberColumn">
+                        <property name="title">Set No.</property>
+                        <property name="clickable">True</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="setNumberCellRendererText">
+                            <property name="background">grey88</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="setDescriptionColumn">
+                        <property name="title">Description</property>
+                        <property name="clickable">True</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="setDescriptionCellRendererText">
+                            <property name="editable">True</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="setsTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">_Sets</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="position">3</property>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="priceslistsScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <object class="GtkTreeView" id="pricelistsView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">pricelistsStore</property>
+                    <property name="headers_clickable">False</property>
+                    <property name="search_column">0</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection7"/>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="pricelistsDescriptionColumn">
+                        <property name="title">Description</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="pricelistsDescriptionCellRendererText">
+                            <property name="editable">True</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="pricelistsCurrencyColumn">
+                        <property name="title">Currency</property>
+                        <child>
+                          <object class="GtkCellRendererCombo" id="priceslistsCurrencyCellRendererCombo">
+                            <property name="editable">True</property>
+                            <property name="has_entry">False</property>
+                            <property name="model">currenciesStore</property>
+                            <property name="text_column">2</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="pricelistsTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">P_ricelists</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="position">4</property>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="currenciesScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <child>
+                  <object class="GtkTreeView" id="currenciesView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">currenciesStore</property>
+                    <property name="headers_clickable">False</property>
+                    <property name="search_column">0</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection8"/>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="currencyCodeColumn">
+                        <property name="title">Code</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="currenciesCodeCellRendererText">
+                            <property name="background">grey88</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="currenciesNameColumn">
+                        <property name="title">Name</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="currenciesNameCellRendererText">
+                            <property name="editable">True</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="position">5</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="currenciesTabLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">C_urrencies</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="position">5</property>
+                <property name="tab_fill">False</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="toMakeTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">_To Make</property>
-            <property name="use_underline">True</property>
-          </object>
-          <packing>
-            <property name="position">2</property>
-            <property name="tab_fill">False</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="setsScrolledWindow">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <child>
-              <object class="GtkTreeView" id="setsView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">setsStore</property>
-                <property name="search_column">0</property>
-                <property name="enable_grid_lines">both</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection6"/>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="setNumberColumn">
-                    <property name="title">Set No.</property>
-                    <property name="clickable">True</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="setNumberCellRendererText">
-                        <property name="background">grey88</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="setDescriptionColumn">
-                    <property name="title">Description</property>
-                    <property name="clickable">True</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="setDescriptionCellRendererText">
-                        <property name="editable">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="setsTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">_Sets</property>
-            <property name="use_underline">True</property>
-          </object>
-          <packing>
-            <property name="position">3</property>
-            <property name="tab_fill">False</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="priceslistsScrolledWindow">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <child>
-              <object class="GtkTreeView" id="pricelistsView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">pricelistsStore</property>
-                <property name="headers_clickable">False</property>
-                <property name="search_column">0</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection7"/>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="pricelistsUseColumn">
-                    <property name="title">Use</property>
-                    <child>
-                      <object class="GtkCellRendererToggle" id="pricelistsUseCellRendererToggle">
-                        <property name="radio">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="active">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="pricelistsDescriptionColumn">
-                    <property name="title">Description</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="priceslistsDescriptionCellRendererText">
-                        <property name="editable">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="pricelistsCurrencyColumn">
-                    <property name="title">Currency</property>
-                    <child>
-                      <object class="GtkCellRendererCombo" id="priceslistsCurrencyCellRendererCombo">
-                        <property name="editable">True</property>
-                        <property name="has_entry">False</property>
-                        <property name="model">currenciesStore</property>
-                        <property name="text_column">2</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="pricelistsTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">P_ricelists</property>
-            <property name="use_underline">True</property>
-          </object>
-          <packing>
-            <property name="position">4</property>
-            <property name="tab_fill">False</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="currenciesScrolledWindow">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <child>
-              <object class="GtkTreeView" id="currenciesView">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="model">currenciesStore</property>
-                <property name="headers_clickable">False</property>
-                <property name="search_column">0</property>
-                <child internal-child="selection">
-                  <object class="GtkTreeSelection" id="treeview-selection8"/>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="currenciesUseColumn">
-                    <property name="title">Use</property>
-                    <child>
-                      <object class="GtkCellRendererToggle" id="currenciesUseCellRendererToggle">
-                        <property name="radio">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="active">0</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="currencyCodeColumn">
-                    <property name="title">Code</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="currenciesCodeCellRendererText">
-                        <property name="background">grey88</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">1</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkTreeViewColumn" id="currenciesNameColumn">
-                    <property name="title">Name</property>
-                    <child>
-                      <object class="GtkCellRendererText" id="currenciesNameCellRendererText">
-                        <property name="editable">True</property>
-                      </object>
-                      <attributes>
-                        <attribute name="text">2</attribute>
-                      </attributes>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="position">5</property>
-          </packing>
-        </child>
-        <child type="tab">
-          <object class="GtkLabel" id="currenciesTabLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">C_urrencies</property>
-            <property name="use_underline">True</property>
-          </object>
-          <packing>
-            <property name="position">5</property>
-            <property name="tab_fill">False</property>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>
@@ -1591,7 +1612,6 @@
       <action-widget response="-5">newCurrencyOkButton</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkTextBuffer" id="notesTextBuffer"/>
   <object class="GtkDialog" id="newPartDialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -2228,6 +2248,7 @@
       <action-widget response="-5">newSetOkButton</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkTextBuffer" id="notesTextBuffer"/>
   <object class="GtkMenu" id="partsContextMenu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -2334,8 +2355,6 @@
   </object>
   <object class="GtkListStore" id="pricelistsStore">
     <columns>
-      <!-- column-name usePricelist -->
-      <column type="gboolean"/>
       <!-- column-name pricelistDescription -->
       <column type="gchararray"/>
       <!-- column-name currencyName -->

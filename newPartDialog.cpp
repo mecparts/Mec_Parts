@@ -33,13 +33,13 @@ NewPartDialog::NewPartDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder) :
 	m_pNewPartPrice(NULL),
 	m_pNewPartNotes(NULL),
 	m_pNewPartOkButton(NULL),
-  m_pNewPartPriceLabel(NULL)
+	m_pNewPartPriceLabel(NULL)
 {
 	GET_WIDGET(pRefBuilder,"newPartDialog",m_pDialog)
 	m_pDialog->signal_delete_event().connect(sigc::mem_fun(*this,&NewPartDialog::on_delete_event));
 
 	GET_WIDGET(pRefBuilder,"newPartErrorLabel",m_pNewPartErrorLabel)
-  GET_WIDGET(pRefBuilder,"newPartPriceLabel",m_pNewPartPriceLabel)
+	GET_WIDGET(pRefBuilder,"newPartPriceLabel",m_pNewPartPriceLabel)
 	GET_WIDGET(pRefBuilder,"newPartOkButton",m_pNewPartOkButton)
 	GET_WIDGET(pRefBuilder,"partNumberEntry",m_pNewPartNumber)
 	m_pNewPartNumber->signal_changed().connect(sigc::mem_fun(*this,&NewPartDialog::on_partInfo_changed_event));
@@ -79,7 +79,7 @@ void NewPartDialog::on_partInfo_changed_event()
 
 gint NewPartDialog::Run(string errorLabel,string currencyCode)
 {
-  m_pNewPartPriceLabel->set_text("Price ("+currencyCode+"):");
+	m_pNewPartPriceLabel->set_text("Price ("+currencyCode+"):");
 	m_pNewPartErrorLabel->set_text(errorLabel);
 	if( errorLabel.empty() ) {
 		m_pNewPartNumber->set_text("");
