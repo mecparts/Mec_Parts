@@ -37,11 +37,11 @@ class CollectionStore : public Gtk::TreeModel::ColumnRecord
 		Gtk::TreeModelColumn<guint> m_count;
 		Gtk::TreeModelColumn<gdouble> m_price;
 		Gtk::TreeModelColumn<gdouble> m_total;
+		Gtk::TreeModelColumn<string> m_notes;
 		Gtk::TreeModelColumn<gint64> m_rowId;
 		Gtk::TreeModelColumn<string> m_pnPrefix;
 		Gtk::TreeModelColumn<guint> m_pnDigits;
 		Gtk::TreeModelColumn<string> m_pnSuffix;
-		Gtk::TreeModelColumn<string> m_notes;
 
 		CollectionStore()
 		{
@@ -51,11 +51,11 @@ class CollectionStore : public Gtk::TreeModel::ColumnRecord
 			add(m_count);
 			add(m_price);
 			add(m_total);
+			add(m_notes);
 			add(m_rowId);
 			add(m_pnPrefix);
 			add(m_pnDigits);
 			add(m_pnSuffix);
-			add(m_notes);
 		}
 };
 #endif

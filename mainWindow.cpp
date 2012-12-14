@@ -64,6 +64,7 @@ MainWindow::MainWindow()
 	m_partsViewPriceColumnIndex = 0;
 	m_toMakeCost = 0;
 	m_toMakeViewPriceColumnIndex = 0;
+	m_readOnlyCellBackground = Gdk::Color(string("grey88"));
 
 	m_baseDir = Glib::build_filename(Glib::get_home_dir(),".mecparts");
 	// hook up to the database
@@ -217,28 +218,33 @@ void MainWindow::CollectionSetup()
 	// the backing data store for the collection tree view
 	GET_OBJECT(m_refBuilder,"collectionStore",m_pCollectionStore,ListStore);
 	
-	// add price and total columns to the view. Glade doesn't have a nicely
+	// add price, total columns and notes to the view. Glade doesn't have a nicely
 	// formatted numeric column so we add it manually.
 	m_collectionViewPriceColumnIndex = m_pCollectionView->append_column_numeric("Price",m_collectionStore.m_price,"%.2lf")-1;
 	m_pCollectionView->append_column_numeric("Total",m_collectionStore.m_total,"%.2lf");
+	int collectionViewNotesColumnIndex = m_pCollectionView->append_column_editable("Notes",m_collectionStore.m_notes)-1;
+	Gtk::CellRendererText *pCellRenderer;
+	GET_TEXT_RENDERER("collectionNotesCellRenderer",pCellRenderer,m_pCollectionView,collectionViewNotesColumnIndex);
+	pCellRenderer->set_property("editable",false);
+	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 
 	// the number of each part present in the collection (editable)
-	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("collectionCountCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
+	pCellRenderer->set_property("xalign",1.0);
 
 	// the price of an individual part (non-editable in the collection view)
 	GET_TEXT_RENDERER("collectionPriceCellRenderer",m_pCollectionPriceCellRenderer,m_pCollectionView,m_collectionStore.m_price.index())
-	string propertyName = "background-gdk"; 
-	Gdk::Color bkColour= Gdk::Color(string("grey88"));
-	m_pCollectionPriceCellRenderer->set_property(propertyName,bkColour);
+	m_pCollectionPriceCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
+	m_pCollectionPriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_pCollectionView->get_column(m_collectionViewPriceColumnIndex)->set_cell_data_func(*m_pCollectionPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_collection_price_column_drawn));
 
 	// the 'total value' of each part in the collection (cost of an individual
 	// part timex the count of this part in the collection)
 	GET_TEXT_RENDERER("collectionTotalCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_total.index())
-	pCellRenderer->set_property(propertyName,bkColour);
+	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
+	pCellRenderer->set_property("xalign",1.0);
 	
 	// the collection combobox selector. Use the set description out of the
 	// sets data store in the drop down list and hook up an event on the
@@ -755,6 +761,7 @@ void MainWindow::PartsSetup()
 	// parts price
 	GET_TEXT_RENDERER("partsPriceCellRenderer",m_pPartsPriceCellRenderer,m_pPartsView,m_partsStore.m_price.index())
 	m_pPartsPriceCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
+	m_pPartsPriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_defaultPriceCellForeColor = m_pPartsPriceCellRenderer->property_foreground_gdk();
 	m_missingPriceCellForeColor = Gdk::Color(string("red"));
@@ -1273,19 +1280,23 @@ void MainWindow::ToMakeSetup()
 	// or at least not that I've found!
 	m_toMakeViewPriceColumnIndex = m_pToMakeView->append_column_numeric("Price",m_toMakeStore.m_price,"%.2lf")-1;
 	m_pToMakeView->append_column_numeric("Total",m_toMakeStore.m_total,"%.2lf");
+	int toMakeViewNotesColumnIndex = m_pToMakeView->append_column_editable("Notes",m_toMakeStore.m_notes)-1;
+	Gtk::CellRendererText *pCellRenderer;
+	GET_TEXT_RENDERER("toMakeNotesCellRenderer",pCellRenderer,m_pToMakeView,toMakeViewNotesColumnIndex);
+	pCellRenderer->set_property("editable",false);
+	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 
 	// read only columns are shown with a grey background, editable columns have a white one
 	// no columns in the to make view are editable
 	GET_TEXT_RENDERER("toMakePriceCellRenderer",m_pToMakePriceCellRenderer,m_pToMakeView,m_toMakeStore.m_price.index())
-	string propertyName = "background-gdk"; 
-	Gdk::Color bkColour= Gdk::Color(string("grey88"));
-	m_pToMakePriceCellRenderer->set_property(propertyName,bkColour);
+	m_pToMakePriceCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
+	m_pToMakePriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_cell_data_func(*m_pToMakePriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_toMake_price_column_drawn));
 
-	Gtk::CellRendererText *pCellRenderer = NULL;
 	GET_TEXT_RENDERER("toMakeTotalCellRenderer",pCellRenderer,m_pToMakeView,m_toMakeStore.m_total.index())
-	pCellRenderer->set_property(propertyName,bkColour);
+	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
+	pCellRenderer->set_property("xalign",1.0);
 	
 	// 'have' combo box
 	GET_WIDGET(m_refBuilder,"toMakeHaveComboBox",m_pToMakeHaveComboBox);

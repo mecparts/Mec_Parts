@@ -65,6 +65,8 @@
       <column type="gdouble"/>
       <!-- column-name value -->
       <column type="gdouble"/>
+      <!-- column-name notes -->
+      <column type="gchararray"/>
       <!-- column-name rowId -->
       <column type="gint64"/>
       <!-- column-name pnPrefix -->
@@ -72,8 +74,6 @@
       <!-- column-name pnDigits -->
       <column type="guint"/>
       <!-- column-name pnSuffix -->
-      <column type="gchararray"/>
-      <!-- column-name notes -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -1198,6 +1198,7 @@
                             <property name="title">Count</property>
                             <child>
                               <object class="GtkCellRendererText" id="cellrenderertext18">
+                                <property name="alignment">right</property>
                                 <property name="background">grey88</property>
                               </object>
                               <attributes>

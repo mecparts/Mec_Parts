@@ -80,6 +80,7 @@ class MainWindow
 		void DisplayPicture(string partNumber,string description,string size,string notes);
 		Gtk::ComboBox *m_pPricelistComboBox;
 		Gtk::ComboBox *m_pCurrencyComboBox;
+		Gdk::Color m_readOnlyCellBackground;
 		
 		void CurrenciesSetup();
 		void on_currency_combobox_changed();
