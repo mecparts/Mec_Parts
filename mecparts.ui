@@ -77,16 +77,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="currenciesStore">
-    <columns>
-      <!-- column-name currencyCode -->
-      <column type="gchararray"/>
-      <!-- column-name currencyName -->
-      <column type="gchararray"/>
-      <!-- column-name currencyRate -->
-      <column type="gdouble"/>
-    </columns>
-  </object>
   <object class="GtkMenu" id="currenciesContextMenu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -118,6 +108,16 @@
         <property name="use_underline">True</property>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="currenciesStore">
+    <columns>
+      <!-- column-name currencyCode -->
+      <column type="gchararray"/>
+      <!-- column-name currencyName -->
+      <column type="gchararray"/>
+      <!-- column-name currencyRate -->
+      <column type="gdouble"/>
+    </columns>
   </object>
   <object class="GtkFileChooserDialog" id="importFileChooserDialog">
     <property name="can_focus">False</property>
@@ -903,9 +903,7 @@
                             <property name="title">Part #</property>
                             <property name="clickable">True</property>
                             <child>
-                              <object class="GtkCellRendererText" id="collectionPartNumCellRendererText">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="collectionPartNumCellRendererText"/>
                               <attributes>
                                 <attribute name="text">0</attribute>
                               </attributes>
@@ -917,9 +915,7 @@
                             <property name="title">Description</property>
                             <property name="clickable">True</property>
                             <child>
-                              <object class="GtkCellRendererText" id="collectionDescriptionCellRendererText">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="collectionDescriptionCellRendererText"/>
                               <attributes>
                                 <attribute name="text">1</attribute>
                               </attributes>
@@ -930,9 +926,7 @@
                           <object class="GtkTreeViewColumn" id="collectionSizeColumn">
                             <property name="title">Size</property>
                             <child>
-                              <object class="GtkCellRendererText" id="collectionSizeCellRendererText">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="collectionSizeCellRendererText"/>
                               <attributes>
                                 <attribute name="text">2</attribute>
                               </attributes>
@@ -995,9 +989,7 @@
                         <property name="title">Part No.</property>
                         <property name="clickable">True</property>
                         <child>
-                          <object class="GtkCellRendererText" id="partsPartNumberCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
+                          <object class="GtkCellRendererText" id="partsPartNumberCellRendererText"/>
                           <attributes>
                             <attribute name="text">0</attribute>
                           </attributes>
@@ -1157,9 +1149,7 @@
                             <property name="title">Part No.</property>
                             <property name="clickable">True</property>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext15">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="cellrenderertext15"/>
                               <attributes>
                                 <attribute name="text">0</attribute>
                               </attributes>
@@ -1171,9 +1161,7 @@
                             <property name="title">Description</property>
                             <property name="clickable">True</property>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext16">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="toMakeDescriptionCellRendererText"/>
                               <attributes>
                                 <attribute name="text">1</attribute>
                               </attributes>
@@ -1184,9 +1172,7 @@
                           <object class="GtkTreeViewColumn" id="toMakeSizeColumn">
                             <property name="title">Size</property>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext17">
-                                <property name="background">grey88</property>
-                              </object>
+                              <object class="GtkCellRendererText" id="toMakeSizeCellRendererText"/>
                               <attributes>
                                 <attribute name="text">2</attribute>
                               </attributes>
@@ -1197,9 +1183,8 @@
                           <object class="GtkTreeViewColumn" id="toMakeCountColumn">
                             <property name="title">Count</property>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext18">
+                              <object class="GtkCellRendererText" id="toMakeCountCellRendererText">
                                 <property name="alignment">right</property>
-                                <property name="background">grey88</property>
                               </object>
                               <attributes>
                                 <attribute name="text">3</attribute>
@@ -1252,9 +1237,7 @@
                         <property name="title">Set No.</property>
                         <property name="clickable">True</property>
                         <child>
-                          <object class="GtkCellRendererText" id="setNumberCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
+                          <object class="GtkCellRendererText" id="setNumberCellRendererText"/>
                           <attributes>
                             <attribute name="text">0</attribute>
                           </attributes>
@@ -1305,6 +1288,7 @@
                     <property name="model">pricelistsStore</property>
                     <property name="headers_clickable">False</property>
                     <property name="search_column">0</property>
+                    <property name="enable_grid_lines">both</property>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="treeview-selection7"/>
                     </child>
@@ -1367,6 +1351,7 @@
                     <property name="model">currenciesStore</property>
                     <property name="headers_clickable">False</property>
                     <property name="search_column">0</property>
+                    <property name="enable_grid_lines">both</property>
                     <child internal-child="selection">
                       <object class="GtkTreeSelection" id="treeview-selection8"/>
                     </child>
@@ -1374,9 +1359,7 @@
                       <object class="GtkTreeViewColumn" id="currencyCodeColumn">
                         <property name="title">Code</property>
                         <child>
-                          <object class="GtkCellRendererText" id="currenciesCodeCellRendererText">
-                            <property name="background">grey88</property>
-                          </object>
+                          <object class="GtkCellRendererText" id="currenciesCodeCellRendererText"/>
                           <attributes>
                             <attribute name="text">0</attribute>
                           </attributes>

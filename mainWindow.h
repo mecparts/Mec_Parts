@@ -49,7 +49,8 @@ class MainWindow
 		virtual ~MainWindow();
 		
 		Gtk::Window *m_pWindow;
-
+		Glib::RefPtr<Gtk::StyleContext> m_refStyleContext;
+		
 		static int PopulateCurrenciesCallback(void *wnd, int argc, char **argv, char **azColName);
 		static int PopulatePricelistsCallback(void *wnd, int argc, char **argv, char **azColName);
 		static int PopulatePartsCallback(void *wnd, int argc, char **argv, char **azColName);
@@ -77,10 +78,11 @@ class MainWindow
 		bool m_bSetsFiltered;
 		bool on_delete(GdkEventAny *e);
 		void WaitCursor(bool on);
+		void TagReadOnlyColumns(Gtk::TreeView *pTreeView);
 		void DisplayPicture(string partNumber,string description,string size,string notes);
 		Gtk::ComboBox *m_pPricelistComboBox;
 		Gtk::ComboBox *m_pCurrencyComboBox;
-		Gdk::Color m_readOnlyCellBackground;
+		Gdk::RGBA m_readOnlyCellBackground;
 		
 		void CurrenciesSetup();
 		void on_currency_combobox_changed();
@@ -193,8 +195,7 @@ class MainWindow
 		Gtk::MenuItem *m_pPartsUnfilterSetsMenuItem;
 		int m_partsViewPriceColumnIndex;
 		Gtk::CellRendererText *m_pPartsPriceCellRenderer;
-		Gdk::Color m_defaultPriceCellForeColor;
-		Gdk::Color m_missingPriceCellForeColor;
+		Gdk::RGBA m_missingPriceCellForeColor;
 
 	protected:
 		SetsStore m_setsStore;

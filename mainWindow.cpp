@@ -64,7 +64,6 @@ MainWindow::MainWindow()
 	m_partsViewPriceColumnIndex = 0;
 	m_toMakeCost = 0;
 	m_toMakeViewPriceColumnIndex = 0;
-	m_readOnlyCellBackground = Gdk::Color(string("grey88"));
 
 	m_baseDir = Glib::build_filename(Glib::get_home_dir(),".mecparts");
 	// hook up to the database
@@ -111,6 +110,14 @@ MainWindow::MainWindow()
 	if( x != -1 && x != -1 ) {
 		m_pWindow->move(x,y);
 	}
+	m_refStyleContext = m_pWindow->get_style_context();
+	// zero prices will be shown in (usually, theme dependant) red
+	if( !(m_pWindow->get_style_context()->lookup_color("error_color",m_missingPriceCellForeColor)) ) {
+		m_missingPriceCellForeColor = Gdk::RGBA("red");
+		cout << "default error color" << endl;
+	}
+	// read only columns in tree views will get an inactive (usually grey, but theme dependant) background
+	m_readOnlyCellBackground = m_pWindow->get_style_context()->get_background_color(Gtk::STATE_FLAG_INSENSITIVE);
 
 	// set up the contents of each tab in the main window
 	CurrenciesSetup();
@@ -161,6 +168,23 @@ void MainWindow::WaitCursor(bool on)
 		Gdk::flush();
 		while(Gtk::Main::events_pending()) {
 			Gtk::Main::iteration();
+		}
+	}
+}
+
+void MainWindow::TagReadOnlyColumns(Gtk::TreeView *pTreeView)
+{
+	// change the background on all non editable columns
+	guint numColumns = pTreeView->get_n_columns();
+	Glib::ustring editablePropertyName = "editable";
+	for( guint i=0; i<numColumns; ++i ) {
+		Gtk::CellRendererText *pTextCellRenderer = dynamic_cast<Gtk::CellRendererText *>(pTreeView->get_column_cell_renderer((int)i));
+		if( pTextCellRenderer ) {
+			bool editable;
+			pTextCellRenderer->get_property(editablePropertyName,editable);
+			if( !editable ) {
+				pTextCellRenderer->property_background_rgba() = m_readOnlyCellBackground;
+			}
 		}
 	}
 }
@@ -230,7 +254,6 @@ void MainWindow::CollectionSetup()
 	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("collectionNotesCellRenderer",pCellRenderer,m_pCollectionView,collectionViewNotesColumnIndex);
 	pCellRenderer->set_property("editable",false);
-	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 
 	// the number of each part present in the collection (editable)
 	GET_TEXT_RENDERER("collectionCountCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
@@ -239,7 +262,6 @@ void MainWindow::CollectionSetup()
 
 	// the price of an individual part (non-editable in the collection view)
 	GET_TEXT_RENDERER("collectionPriceCellRenderer",m_pCollectionPriceCellRenderer,m_pCollectionView,m_collectionStore.m_price.index())
-	m_pCollectionPriceCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 	m_pCollectionPriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_pCollectionView->get_column(m_collectionViewPriceColumnIndex)->set_cell_data_func(*m_pCollectionPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_collection_price_column_drawn));
@@ -247,7 +269,6 @@ void MainWindow::CollectionSetup()
 	// the 'total value' of each part in the collection (cost of an individual
 	// part timex the count of this part in the collection)
 	GET_TEXT_RENDERER("collectionTotalCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_total.index())
-	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 	pCellRenderer->set_property("xalign",1.0);
 	
 	// the collection combobox selector. Use the set description out of the
@@ -286,6 +307,9 @@ void MainWindow::CollectionSetup()
 	m_pCollectionView->get_column(m_collectionStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_partNumber_clicked));
 	m_pCollectionView->get_column(m_collectionStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_description_clicked));
 
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pCollectionView);
+	
 	// select parts to add dialog
 	m_pSelectPartsDialog = new SelectPartsDialog(m_refBuilder,&m_cfg);
 	if( !m_pSelectPartsDialog ) {
@@ -326,13 +350,6 @@ void MainWindow::CollectionSetup()
 }
 
 // show zero (ie not available or missing) prices in red
-//
-// Setting the text colour here revealed an odd quirk (bug!) in how the text is
-// drawn. Even though the default text colour I'm using is taken from the
-// widget itself, when I set it here, it comes out differently. Left to its own
-// devices, the TreeView text displays as a darkish grey *even though* when
-// queried it comes back as black. When I set the foreground to what the widget
-// told me it was, it comes out black. Very odd!
 void MainWindow::on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
 {
 	Gtk::TreeModel::Row row = *iter;
@@ -341,9 +358,10 @@ void MainWindow::on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk
 	temp << fixed << setprecision(2) << price;
 	m_pCollectionPriceCellRenderer->property_text() = temp.str();
 	if( price == 0.0 ) {
-		m_pCollectionPriceCellRenderer->property_foreground_gdk() = m_missingPriceCellForeColor;
+		m_pCollectionPriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
 	} else {
-		m_pCollectionPriceCellRenderer->property_foreground_gdk() = m_defaultPriceCellForeColor;
+		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pCollectionView->get_style_context();
+		m_pCollectionPriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
 	}
 }
 
@@ -787,9 +805,6 @@ void MainWindow::PartsSetup()
 	GET_TEXT_RENDERER("partsPriceCellRenderer",m_pPartsPriceCellRenderer,m_pPartsView,m_partsStore.m_price.index())
 	m_pPartsPriceCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
 	m_pPartsPriceCellRenderer->set_property("xalign",1.0);
-	// zero prices will be shown in red
-	m_defaultPriceCellForeColor = m_pPartsPriceCellRenderer->property_foreground_gdk();
-	m_missingPriceCellForeColor = Gdk::Color(string("red"));
 	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_cell_data_func(*m_pPartsPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_parts_price_column_drawn));
 	// set the title of the part price column to the currently selected
 	// currency's code (which defaults to the current locale)
@@ -827,6 +842,9 @@ void MainWindow::PartsSetup()
 	GET_WIDGET(m_refBuilder,"partsUnfilterSetsMenuItem",m_pPartsUnfilterSetsMenuItem)
 	m_pPartsUnfilterSetsMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_partsUnfilterSets_activated));
 
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pPartsView);
+	
 	// create a new part dialog
 	m_pNewPartDialog = new NewPartDialog(m_refBuilder);
 	if( !m_pNewPartDialog ) {
@@ -870,13 +888,6 @@ int MainWindow::PopulatePartsCallback(void *wnd, int argc, char **argv, char **a
 }
 
 // show zero (ie not available or missing) prices in red
-//
-// Setting the text colour here revealed an odd quirk (bug!) in how the text is
-// drawn. Even though the default text colour I'm using is taken from the
-// widget itself, when I set it here, it comes out differently. Left to its own
-// devices, the TreeView text displays as a darkish grey *even though* when
-// queried it comes back as black. When I set the foreground to what the widget
-// told me it was, it comes out black. Very odd!
 void MainWindow::on_parts_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
 {
 	Gtk::TreeModel::Row row = *iter;
@@ -885,9 +896,10 @@ void MainWindow::on_parts_price_column_drawn(Gtk::CellRenderer *r,const Gtk::Tre
 	temp << fixed << setprecision(2) << price;
 	m_pPartsPriceCellRenderer->property_text() = temp.str();
 	if( price == 0.0 ) {
-		m_pPartsPriceCellRenderer->property_foreground_gdk() = m_missingPriceCellForeColor;
+		m_pPartsPriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
 	} else {
-		m_pPartsPriceCellRenderer->property_foreground_gdk() = m_defaultPriceCellForeColor;
+		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pPartsView->get_style_context();
+		m_pPartsPriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
 	}
 }
 
@@ -1311,18 +1323,15 @@ void MainWindow::ToMakeSetup()
 	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("toMakeNotesCellRenderer",pCellRenderer,m_pToMakeView,toMakeViewNotesColumnIndex);
 	pCellRenderer->set_property("editable",false);
-	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 
 	// read only columns are shown with a grey background, editable columns have a white one
 	// no columns in the to make view are editable
 	GET_TEXT_RENDERER("toMakePriceCellRenderer",m_pToMakePriceCellRenderer,m_pToMakeView,m_toMakeStore.m_price.index())
-	m_pToMakePriceCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 	m_pToMakePriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_cell_data_func(*m_pToMakePriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_toMake_price_column_drawn));
 
 	GET_TEXT_RENDERER("toMakeTotalCellRenderer",pCellRenderer,m_pToMakeView,m_toMakeStore.m_total.index())
-	pCellRenderer->set_property("background-gdk",m_readOnlyCellBackground);
 	pCellRenderer->set_property("xalign",1.0);
 	
 	// 'have' combo box
@@ -1348,16 +1357,12 @@ void MainWindow::ToMakeSetup()
 
 	// currency code in use
 	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
+
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pToMakeView);
 }
 
 // show zero (ie not available or missing) prices in red
-//
-// Setting the text colour here revealed an odd quirk (bug!) in how the text is
-// drawn. Even though the default text colour I'm using is taken from the
-// widget itself, when I set it here, it comes out differently. Left to its own
-// devices, the TreeView text displays as a darkish grey *even though* when
-// queried it comes back as black. When I set the foreground to what the widget
-// told me it was, it comes out black. Very odd!
 void MainWindow::on_toMake_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
 {
 	Gtk::TreeModel::Row row = *iter;
@@ -1366,9 +1371,10 @@ void MainWindow::on_toMake_price_column_drawn(Gtk::CellRenderer *r,const Gtk::Tr
 	temp << fixed << setprecision(2) << price;
 	m_pToMakePriceCellRenderer->property_text() = temp.str();
 	if( price == 0.0 ) {
-		m_pToMakePriceCellRenderer->property_foreground_gdk() = m_missingPriceCellForeColor;
+		m_pToMakePriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
 	} else {
-		m_pToMakePriceCellRenderer->property_foreground_gdk() = m_defaultPriceCellForeColor;
+		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pToMakeView->get_style_context();
+		m_pToMakePriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
 	}
 }
 
@@ -1589,6 +1595,9 @@ void MainWindow::SetsSetup()
 	// search sets treeview on set number or description
 	m_pSetsView->get_column(m_setsStore.m_setNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_setNumber_clicked));
 	m_pSetsView->get_column(m_setsStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_description_clicked));
+
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pSetsView);
 
 	// new set dialog
 	m_pNewSetDialog = new NewSetDialog(m_refBuilder);
@@ -1838,6 +1847,9 @@ void MainWindow::PricelistsSetup()
 
 	// popup context menu handler
 	m_pPricelistsView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_pricelists_button_pressed));
+
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pPricelistsView);
 
 	// new pricelist dialog
 	m_pNewPricelistDialog = new NewPricelistDialog(m_refBuilder);
@@ -2370,6 +2382,9 @@ void MainWindow::CurrenciesSetup()
 	// currency rate edited handler
 	GET_TEXT_RENDERER("currenciesRateCellRendererText",pTextCellRenderer,m_pCurrenciesView,rateIndex)
 	pTextCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_currencies_rate_edited));
+
+	// change the background on all non editable columns
+	TagReadOnlyColumns(m_pCurrenciesView);
 
 	m_pNewCurrencyDialog = new NewCurrencyDialog(m_refBuilder);
 	if( !m_pNewCurrencyDialog ) {
