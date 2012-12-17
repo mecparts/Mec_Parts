@@ -1313,7 +1313,7 @@
                             <property name="editable">True</property>
                             <property name="has_entry">False</property>
                             <property name="model">currenciesStore</property>
-                            <property name="text_column">2</property>
+                            <property name="text_column">1</property>
                           </object>
                           <attributes>
                             <attribute name="text">1</attribute>

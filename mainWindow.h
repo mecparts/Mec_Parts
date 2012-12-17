@@ -111,7 +111,7 @@ class MainWindow
 		void PricelistsSetup();
 		void RefreshPrices();
 		void on_pricelists_description_edited(Glib::ustring pathStr, Glib::ustring text);
-		void on_pricelists_currency_edited(Glib::ustring pathStr, Glib::ustring text);
+		void on_pricelists_currency_changed(const Glib::ustring &pathStr, const Gtk::TreeIter &comboxboxIter);
 		void on_pricelists_button_pressed(GdkEventButton *pEvent);
 		void on_pricelistsImportPrices_activated();
 		void on_pricelistsNewPricelist_activated();

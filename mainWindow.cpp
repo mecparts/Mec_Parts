@@ -1828,7 +1828,7 @@ void MainWindow::PricelistsSetup()
 	// pricelist currency changed handler
 	Gtk::CellRendererCombo *pComboCellRenderer = NULL;
 	GET_COMBO_RENDERER("pricelistsCurrencyCellRendererCombo",pComboCellRenderer,m_pPricelistsView,m_pricelistsStore.m_currencyName.index())
-	pComboCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_pricelists_currency_edited));
+	pComboCellRenderer->signal_changed().connect(sigc::mem_fun(*this,&MainWindow::on_pricelists_currency_changed));
 	
 	// pricelists context popup menu
 	GET_WIDGET(m_refBuilder,"pricelistsContextMenu",m_pPricelistsContextMenu)
@@ -1929,45 +1929,31 @@ void MainWindow::on_pricelists_description_edited(Glib::ustring pathStr, Glib::u
 	m_pSql->ExecNonQuery(&sql);
 }
 
-// pricelist currency edited: this one's a bit trickier than usual, since the currency
-// column is a combo box. Gtk gives me the combo box text but there doesn't seem to
-// be any way to get the associated currency code without manually searching the
-// currencies datastore for the matching currency name.
-void MainWindow::on_pricelists_currency_edited(Glib::ustring pathStr, Glib::ustring text)
+// pricelist currency combo box changed: I knew it had to be easier than it looked at first
+void MainWindow::on_pricelists_currency_changed(const Glib::ustring &pathStr, const Gtk::TreeIter &currencyIter)
 {
+	cout << "pathStr=" << pathStr << endl; cout.flush();
 	// get the pricelist number
-	GET_ITER(iter,m_pPricelistsStore,pathStr)
-	gint64 num = (*iter)[m_pricelistsStore.m_num];
-	// there MUST be a better way of getting the active row
-	// from a CellRendererCombo!
-	Gtk::TreeModel::Children rows = m_pCurrenciesStore->children();
-	string code;
-	// search all currencies for a matching currency name
-	for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
-		Gtk::TreeModel::Row row = *r;
-		string currencyName = row[m_currenciesStore.m_name];
-		if( currencyName == text ) {
-			// found the currency, update the data store
-			(*iter)[m_pricelistsStore.m_currencyCode] = code = row[m_currenciesStore.m_code];
-			(*iter)[m_pricelistsStore.m_currencyName] = text;
-			// if we've changed the currency type of the in use pricelist
-			// then we'll need to change the in use currency rate
-			if( m_pricelistCurrencyCode == code ) {
-				m_pricelistCurrencyRate = (*iter)[m_pricelistsStore.m_currencyRate];
-				m_pricelistCurrencyCode = (*iter)[m_pricelistsStore.m_currencyCode];
-				RefreshPrices();
-			}
-			break;
-		}
+	GET_ITER(pricelistIter,m_pPricelistsStore,pathStr)
+	gint64 num = (*pricelistIter)[m_pricelistsStore.m_num];
+	cout << "num=" << num << endl; cout.flush();
+	string code,text;
+	(*pricelistIter)[m_pricelistsStore.m_currencyCode] = code = (*currencyIter)[m_currenciesStore.m_code];
+	cout << "code=" << code << endl; cout.flush();
+	(*pricelistIter)[m_pricelistsStore.m_currencyName] = text = (*currencyIter)[m_currenciesStore.m_name];
+	cout << "text=" << text << endl; cout.flush();
+	// if we've changed the currency type of the in use pricelist
+	// then we'll need to change the in use currency rate
+	if( m_pricelistCurrencyCode == code ) {
+		m_pricelistCurrencyRate = (*pricelistIter)[m_pricelistsStore.m_currencyRate];
+		m_pricelistCurrencyCode = (*pricelistIter)[m_pricelistsStore.m_currencyCode];
+		RefreshPrices();
 	}
-	// we *should* always find the new currency, but just in case test for it
-	if( !code.empty() ) {
-		stringstream sql;
-		sql
-			<< "UPDATE pricelists SET currency_code='" << m_pSql->Escape(code)
-			<< "' WHERE num=" << num;
-		m_pSql->ExecNonQuery(&sql);
-	}
+	stringstream sql;
+	sql
+		<< "UPDATE pricelists SET currency_code='" << m_pSql->Escape(code)
+		<< "' WHERE num=" << num;
+	m_pSql->ExecNonQuery(&sql);
 }
 
 // change the pricelist in use
