@@ -215,6 +215,7 @@ class MainWindow
 		Gtk::MenuItem *m_pSetsDeleteSetMenuItem;
 		
 	private:
+		Gtk::ScrolledWindow *m_pToMakeScrolledWindow;
 		Gtk::TreeView *m_pToMakeView;
 		Gtk::CellRendererText *m_pToMakePriceCellRenderer;
 		ToMakeStore m_toMakeStore;

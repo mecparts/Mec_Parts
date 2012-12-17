@@ -111,7 +111,7 @@ MainWindow::MainWindow()
 	if( x != -1 && x != -1 ) {
 		m_pWindow->move(x,y);
 	}
-	
+
 	// set up the contents of each tab in the main window
 	CurrenciesSetup();
 	PricelistsSetup();
@@ -139,6 +139,8 @@ bool MainWindow::on_delete(GdkEventAny *e)
 	m_cfg.set_mainWindow_size(width,height);
 	m_pWindow->get_position(x,y);
 	m_cfg.set_mainWindow_pos(x,y);
+	m_cfg.set_collection_number(m_collectionNumber);
+	m_cfg.set_pricelist_number(m_pricelistNumber);
 	m_cfg.save_cfg();
 	return false;
 }
@@ -300,7 +302,23 @@ void MainWindow::CollectionSetup()
 
 	// select the first set to display
 	if( m_pSetsStore->children().size() > 0 ) {
-		m_pCollectionSetComboBox->set_active(0);
+		string collectionNum= m_cfg.get_collection_number();
+		if( !collectionNum.empty() ) {
+			Gtk::TreeModel::Children setsRows = m_pSetsStore->children();
+			int setIndex = 0;
+			for( Gtk::TreeModel::iterator iter = setsRows.begin(); iter!= setsRows.end(); ++iter ) {
+				Gtk::TreeModel::Row setsRow = *iter;
+				string setNum = setsRow[m_setsStore.m_setNumber];
+				if( setNum == collectionNum ) {
+					m_pCollectionSetComboBox->set_active(setIndex);
+					break;
+				} else {
+					++setIndex;
+				}
+			}
+		} else {
+			m_pCollectionSetComboBox->set_active(0);
+		}
 	}
 }
 
@@ -376,7 +394,8 @@ void MainWindow::on_collection_set_combobox_changed()
 				<< "LEFT OUTER JOIN v_part_prices pp ON p.num=pp.part_num AND pp.pricelist_num=" << m_pricelistNumber
 				<< " ORDER BY p.pnPrefix,p.pnDigits,p.pnSuffix";
 			m_pSql->ExecQuery(&cmd, MainWindow::PopulateCollectionCallback);
-			
+			// scroll to top of window on a new collection
+			m_pCollectionScrolledWindow->get_vadjustment()->set_value(0);
 			// update the total # of parts of cost of parts in the collection
 			stringstream temp;
 			temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << setiosflags(ios::fixed) << setprecision(2) << m_collectionCost;
@@ -1268,7 +1287,9 @@ void MainWindow::ToMakeSetup()
 {
 	// to make treeview and context menu handler
 	GET_WIDGET(m_refBuilder,"toMakeView",m_pToMakeView)
-	 m_pToMakeView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_button_pressed));
+	m_pToMakeView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_button_pressed));
+	GET_WIDGET(m_refBuilder,"toMakeScrolledWindow",m_pToMakeScrolledWindow);
+	
 
 	// cost of parts 'to make' what I 'want' from what I 'have'
 	GET_WIDGET(m_refBuilder,"toMakeCost",m_pToMakeCost);
@@ -1436,6 +1457,7 @@ void MainWindow::FillToMake()
 		Gtk::TreeModel::Row wantRow = *iterWant;
 		if(haveRow && wantRow)
 		{
+			m_pToMakeScrolledWindow->get_vadjustment()->set_value(0);
 			// get the have and want set numbers (escaped for sql)
 			string haveNum = m_pSql->Escape(haveRow[m_setsStore.m_setNumber]);
 			string wantNum = m_pSql->Escape(wantRow[m_setsStore.m_setNumber]);
@@ -1829,10 +1851,25 @@ void MainWindow::PricelistsSetup()
 	filter_any->add_pattern("*");
 	m_pImportFileChooserDialog->add_filter(filter_any);
 
-	// start up with the first pricelist selected
-	// I probably should store the selected pricelist in the config file...
+	// start up with the last pricelist used
 	if( m_pPricelistsStore->children().size() > 0 ) {
-		m_pPricelistComboBox->set_active(0);
+		gint64 pricelistNum= m_cfg.get_pricelist_number();
+		if( pricelistNum != -1 ) {
+			Gtk::TreeModel::Children pricelistsRows = m_pPricelistsStore->children();
+			int pricelistIndex = 0;
+			for( Gtk::TreeModel::iterator iter = pricelistsRows.begin(); iter!= pricelistsRows.end(); ++iter ) {
+				Gtk::TreeModel::Row pricelistsRow = *iter;
+				gint64 plNum = pricelistsRow[m_pricelistsStore.m_num];
+				if( pricelistNum == plNum ) {
+					m_pPricelistComboBox->set_active(pricelistIndex);
+					break;
+				} else {
+					++pricelistIndex;
+				}
+			}
+		} else {
+			m_pPricelistComboBox->set_active(0);
+		}
 	} else {
 		throw "Oh no! No priceslists in database";
 	}

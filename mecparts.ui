@@ -77,6 +77,16 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="currenciesStore">
+    <columns>
+      <!-- column-name currencyCode -->
+      <column type="gchararray"/>
+      <!-- column-name currencyName -->
+      <column type="gchararray"/>
+      <!-- column-name currencyRate -->
+      <column type="gdouble"/>
+    </columns>
+  </object>
   <object class="GtkMenu" id="currenciesContextMenu">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -108,16 +118,6 @@
         <property name="use_underline">True</property>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="currenciesStore">
-    <columns>
-      <!-- column-name currencyCode -->
-      <column type="gchararray"/>
-      <!-- column-name currencyName -->
-      <column type="gchararray"/>
-      <!-- column-name currencyRate -->
-      <column type="gdouble"/>
-    </columns>
   </object>
   <object class="GtkFileChooserDialog" id="importFileChooserDialog">
     <property name="can_focus">False</property>

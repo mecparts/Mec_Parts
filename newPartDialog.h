@@ -25,20 +25,18 @@
 #include <boost/regex.hpp>
 #include "mecparts.h"
 
-using namespace std;
-
 class NewPartDialog
 {
 	public:
 		NewPartDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
 		virtual ~NewPartDialog();
 		
-		string PartNumber() { return m_pNewPartNumber->get_text(); };
-		string Description() { return m_pNewPartDescription->get_text(); };
-		string Size() { return m_pNewPartSize->get_text(); };
+		std::string PartNumber() { return m_pNewPartNumber->get_text(); };
+		std::string Description() { return m_pNewPartDescription->get_text(); };
+		std::string Size() { return m_pNewPartSize->get_text(); };
 		double Price();
-		string Notes() { return m_pNewPartNotes->get_buffer()->get_text(); };
-		gint Run(string errorLabel,string currencyCode);
+		std::string Notes() { return m_pNewPartNotes->get_buffer()->get_text(); };
+		gint Run(std::string errorLabel,std::string currencyCode);
 		void Hide();
 		
 	private:

@@ -24,15 +24,13 @@
 
 #include "mecparts.h"
 
-using namespace std;
-
 //Tree model columns:
 class CurrenciesStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
 
-		Gtk::TreeModelColumn<string> m_code;
-		Gtk::TreeModelColumn<string> m_name;
+		Gtk::TreeModelColumn<std::string> m_code;
+		Gtk::TreeModelColumn<std::string> m_name;
 		Gtk::TreeModelColumn<gdouble> m_rate;
 		
 		CurrenciesStore()

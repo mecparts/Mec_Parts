@@ -26,8 +26,6 @@
 #include "mecparts.h"
 #include "currenciesStore.h"
 
-using namespace std;
-
 class NewCurrencyDialog
 {
 	public:
@@ -36,10 +34,10 @@ class NewCurrencyDialog
 		
 		Gtk::Dialog *m_pDialog;
 	
-		string Description() { return m_pNewCurrencyDescription->get_text(); }
-		string CurrencyCode() { return m_pNewCurrencyCode->get_text(); }
+		std::string Description() { return m_pNewCurrencyDescription->get_text(); }
+		std::string CurrencyCode() { return m_pNewCurrencyCode->get_text(); }
 		double CurrencyRate() { return atof(m_pNewCurrencyRate->get_text().c_str()); }
-		gint Run(string errorLabel);
+		gint Run(std::string errorLabel);
 		void Hide();
 		
 	private:

@@ -24,15 +24,13 @@
 
 #include "mecparts.h"
 
-using namespace std;
-
 //Tree model columns:
 class SetsStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
 
-		Gtk::TreeModelColumn<string> m_setNumber;
-		Gtk::TreeModelColumn<string> m_description;
+		Gtk::TreeModelColumn<std::string> m_setNumber;
+		Gtk::TreeModelColumn<std::string> m_description;
 		Gtk::TreeModelColumn<guint> m_started;
 		Gtk::TreeModelColumn<guint> m_ended;
 		Gtk::TreeModelColumn<gint64> m_rowId;

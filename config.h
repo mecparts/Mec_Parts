@@ -33,6 +33,8 @@
 			int m_mainWindow_sizex, m_mainWindow_sizey;
 			int m_selectPartsDialog_sizex, m_selectPartsDialog_sizey;
 			int m_selectSetDialog_sizex, m_selectSetDialog_sizey;
+			std::string m_collection_number;
+			gint64 m_pricelist_number;
 			
 		public:
 			static Config* get_instance();	// instance getter
@@ -49,6 +51,12 @@
 
 			void get_selectSetDialog_size(int &w, int &h);
 			void set_selectSetDialog_size(int w, int h);
+			
+			std::string get_collection_number();
+			void set_collection_number(std::string collection_number);
+			
+			gint64 get_pricelist_number();
+			void set_pricelist_number(gint64 pricelist_number);
 			
 			bool save_cfg();            // save non bg related cfg info
 			bool load_cfg();

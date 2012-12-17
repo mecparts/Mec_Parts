@@ -24,16 +24,14 @@
 
 #include "mecparts.h"
 
-using namespace std;
-
 //Tree model columns:
 class ToMakeStore : public Gtk::TreeModel::ColumnRecord
 {
 	public:
 
-		Gtk::TreeModelColumn<string> m_partNumber;
-		Gtk::TreeModelColumn<string> m_description;
-		Gtk::TreeModelColumn<string> m_size;
+		Gtk::TreeModelColumn<std::string> m_partNumber;
+		Gtk::TreeModelColumn<std::string> m_description;
+		Gtk::TreeModelColumn<std::string> m_size;
 		Gtk::TreeModelColumn<guint> m_count;
 		Gtk::TreeModelColumn<gdouble> m_price;
 		Gtk::TreeModelColumn<gdouble> m_total;

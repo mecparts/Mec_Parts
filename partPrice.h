@@ -25,17 +25,15 @@
 #include <string>
 #include "mecparts.h"
 
-using namespace std;
-
 class PartPrice
 {
 	public:
-		PartPrice(string num,double price);
+		PartPrice(std::string num,double price);
 		virtual ~PartPrice();
-		string PartNum() { return m_partNum; }
+		std::string PartNum() { return m_partNum; }
 		double Price() { return m_price; }
 	private:
-		string m_partNum;
+		std::string m_partNum;
 		double m_price;
 };
 #endif

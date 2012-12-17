@@ -27,15 +27,13 @@
 #include <string>
 #include "mecparts.h"
 
-using namespace std;
-
 class ImportResultDialog
 {
 	public:
 		ImportResultDialog(Glib::RefPtr<Gtk::Builder> pRefBuilder);
 		virtual ~ImportResultDialog();
 		
-		gint Run(int numAdded,int numUpdated,vector<string> unknownParts);
+		gint Run(int numAdded,int numUpdated,std::vector<std::string> unknownParts);
 		void Hide();
 	private:
 		Gtk::Dialog *m_pDialog;

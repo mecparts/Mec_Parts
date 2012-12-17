@@ -36,6 +36,9 @@ Config::Config()
 
 	m_selectSetDialog_sizex = 300;
 	m_selectSetDialog_sizey = 500;
+	
+	m_collection_number = "";
+	m_pricelist_number = -1;
 }
 
 // Singleton retreiver.  NOT THREAD SAFE.  Call this func early to create, then it's ok.
@@ -135,6 +138,26 @@ void Config::set_selectSetDialog_size(int w, int h)
 	m_selectSetDialog_sizey = h;
 }
 
+string Config::get_collection_number()
+{
+	return m_collection_number;
+}
+
+void Config::set_collection_number(string collection_number)
+{
+	m_collection_number = collection_number;
+}
+
+gint64 Config::get_pricelist_number()
+{
+	return m_pricelist_number;
+}
+
+void Config::set_pricelist_number(gint64 pricelist_number)
+{
+	m_pricelist_number = pricelist_number;
+}
+
 // save configuration data
 bool Config::save_cfg()
 {
@@ -155,9 +178,12 @@ bool Config::save_cfg()
 	kf.set_integer("selectPartsDialog_geometry", "sizex", m_selectPartsDialog_sizex);
 	kf.set_integer("selectPartsDialog_geometry", "sizey", m_selectPartsDialog_sizey);
 
-	kf.set_integer("selectSetDialog_geometry", "sizex", m_selectSetDialog_sizex);
-	kf.set_integer("selectSetDialog_geometry", "sizey", m_selectSetDialog_sizey);
+	kf.set_int64("selectSetDialog_geometry", "sizex", m_selectSetDialog_sizex);
+	kf.set_int64("selectSetDialog_geometry", "sizey", m_selectSetDialog_sizey);
 
+	kf.set_string("config","collection",m_collection_number);
+	kf.set_integer("config","pricelist",m_pricelist_number);
+	
 	if( g_file_set_contents(cfgfile.c_str(), kf.to_data().c_str(), -1, NULL) == FALSE ) {
 		return false;
 	}
@@ -210,6 +236,14 @@ bool Config::load_cfg()
 		}
 		if( kf.has_key("selectSetDialog_geometry", "sizey") ) {
 			m_selectSetDialog_sizey = kf.get_integer("selectSetDialog_geometry", "sizey");
+		}
+	}
+	if( kf.has_group("config") ) {
+		if( kf.has_key("config","collection") ) {
+			m_collection_number = kf.get_string("config","collection");
+		}
+		if( kf.has_key("config","pricelist") ) {
+			m_pricelist_number = kf.get_int64("config","pricelist");
 		}
 	}
 	return true;

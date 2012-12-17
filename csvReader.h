@@ -25,20 +25,18 @@
 #include <vector>
 #include <fstream>
 
-using namespace std;
-
 class CsvReader
 {
 	public:
-		CsvReader(string csvFilename);
+		CsvReader(std::string csvFilename);
 		virtual ~CsvReader();
-		bool Parse(vector<string> &fields);
+		bool Parse(std::vector<std::string> &fields);
 
 	private:
-		ifstream m_ifs;
-		string m_csvFilename;
+		std::ifstream m_ifs;
+		std::string m_csvFilename;
 
-		void Parse(string line,vector<string> &fields);
-		string Strip(string field);
+		void Parse(std::string line,std::vector<std::string> &fields);
+		std::string Strip(std::string field);
 };
 #endif
