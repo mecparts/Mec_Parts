@@ -151,10 +151,12 @@ void MainWindow::WaitCursor(bool on)
 	Glib::RefPtr<Gdk::Window> refWindow = m_pWindow->get_window();
 	if( refWindow ) {
 		if( on ) {
-		Glib::RefPtr<Gdk::Cursor> waitCursor = Gdk::Cursor::create(Gdk::WATCH);
-		refWindow->set_cursor(waitCursor);
+			Glib::RefPtr<Gdk::Cursor> waitCursor = Gdk::Cursor::create(Gdk::WATCH);
+			refWindow->set_cursor(waitCursor);
+			m_pWindow->set_sensitive(false);
 		} else {
 			refWindow->set_cursor();
+			m_pWindow->set_sensitive(true);
 		}
 		Gdk::flush();
 		while(Gtk::Main::events_pending()) {
@@ -300,7 +302,7 @@ void MainWindow::CollectionSetup()
 	// currency's code (which defaults to the current locale)
 	m_pCollectionView->get_column(m_collectionViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 
-	// select the first set to display
+	// select the last used collection to display
 	if( m_pSetsStore->children().size() > 0 ) {
 		string collectionNum= m_cfg.get_collection_number();
 		if( !collectionNum.empty() ) {
@@ -317,6 +319,7 @@ void MainWindow::CollectionSetup()
 				}
 			}
 		} else {
+			// hmm. Couldn't find the last collection. Default to the first one.
 			m_pCollectionSetComboBox->set_active(0);
 		}
 	}
@@ -460,6 +463,8 @@ void MainWindow::on_collectionViewPart_activated()
 void MainWindow::on_collectionAddPart_activated()
 {
 	if( m_pSelectPartsDialog->Run() == Gtk::RESPONSE_OK ) {
+		m_pSelectPartsDialog->Hide();
+		WaitCursor(true);
 		// grab a list of the selected parts
 		Glib::RefPtr<Gtk::TreeSelection> pSelected = m_pSelectPartsDialog->Selected();
 		if( m_pSelectPartsDialog->SelectedCount() > 0 ) {
@@ -468,9 +473,10 @@ void MainWindow::on_collectionAddPart_activated()
 		}
 		CalculateCollectionTotals();
 		RefreshToMake();
+		WaitCursor(false);
+	} else {
+		m_pSelectPartsDialog->Hide();
 	}
-	// all done, hide the dialog
-	m_pSelectPartsDialog->Hide();
 }
 
 // callback routine to add a part to the collection
@@ -547,6 +553,7 @@ bool MainWindow::AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool 
 	newRow[m_collectionStore.m_partNumber] = temp = partRow[m_partsStore.m_partNumber];
 	newRow[m_collectionStore.m_description] = temp = partRow[m_partsStore.m_description];
 	newRow[m_collectionStore.m_size] = temp = partRow[m_partsStore.m_size];
+	newRow[m_collectionStore.m_notes] = temp = partRow[m_partsStore.m_notes];
 	newRow[m_collectionStore.m_count] = count;
 	// use a temp numeric variable to assign datastore values to other
 	// datastore values. Trying to do it direct just doesn't work.
@@ -640,7 +647,6 @@ void MainWindow::AddSetPartsCallback(const Gtk::TreeModel::iterator &iter)
 			// for the counts of existing parts in the collection
 			// to be updated
 			AddPartToCollection(partRow,count,true);
-			break;
 		}
 	}
 }
