@@ -79,6 +79,7 @@ class MainWindow
 		bool on_delete(GdkEventAny *e);
 		void WaitCursor(bool on);
 		void TagReadOnlyColumns(Gtk::TreeView *pTreeView);
+		void DrawColumn(Gtk::CellRendererText *r,stringstream &text,Gtk::TreeView *t,bool missing);
 		void DisplayPicture(string partNumber,string description,string size,string notes);
 		Gtk::ComboBox *m_pPricelistComboBox;
 		Gtk::ComboBox *m_pCurrencyComboBox;
@@ -137,6 +138,7 @@ class MainWindow
 		double m_collectionCost;
 	private:
 		Gtk::TreeView *m_pCollectionView;
+		Gtk::CellRendererText *m_pCollectionCountCellRenderer;
 		Gtk::CellRendererText *m_pCollectionPriceCellRenderer;
 		Gtk::Label *m_pCollectionCountCost;
 		Gtk::ComboBox *m_pCollectionSetComboBox;
@@ -153,6 +155,7 @@ class MainWindow
 		void CollectionSetup();
 		void on_collection_set_combobox_changed();
 		void on_collection_count_edited(Glib::ustring pathStr, Glib::ustring text);
+		void on_collection_count_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void on_collection_button_pressed(GdkEventButton *pEvent);
 		void on_collectionViewPart_activated();
@@ -195,7 +198,7 @@ class MainWindow
 		Gtk::MenuItem *m_pPartsUnfilterSetsMenuItem;
 		int m_partsViewPriceColumnIndex;
 		Gtk::CellRendererText *m_pPartsPriceCellRenderer;
-		Gdk::RGBA m_missingPriceCellForeColor;
+		Gdk::RGBA m_missingValueCellForeColor;
 
 	protected:
 		SetsStore m_setsStore;

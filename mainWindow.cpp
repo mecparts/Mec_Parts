@@ -112,8 +112,8 @@ MainWindow::MainWindow()
 	}
 	m_refStyleContext = m_pWindow->get_style_context();
 	// zero prices will be shown in (usually, theme dependant) red
-	if( !(m_pWindow->get_style_context()->lookup_color("error_color",m_missingPriceCellForeColor)) ) {
-		m_missingPriceCellForeColor = Gdk::RGBA("red");
+	if( !(m_pWindow->get_style_context()->lookup_color("error_color",m_missingValueCellForeColor)) ) {
+		m_missingValueCellForeColor = Gdk::RGBA("red");
 		cout << "default error color" << endl;
 	}
 	// read only columns in tree views will get an inactive (usually grey, but theme dependant) background
@@ -172,20 +172,51 @@ void MainWindow::WaitCursor(bool on)
 	}
 }
 
+// change the background on all non editable columns
+// I used to do this partially in the Glade file (for columns declared there)
+// and partially in the various Setup functions (for columns added there). But
+// Glade didn't know about the theme colours and so I'd picked a colour that
+// matched *my* theme. Worked for me, maybe not for you. This way every non-
+// editable text column gets the same colouring treatment, and its based on the
+// theme.
 void MainWindow::TagReadOnlyColumns(Gtk::TreeView *pTreeView)
 {
-	// change the background on all non editable columns
 	guint numColumns = pTreeView->get_n_columns();
 	Glib::ustring editablePropertyName = "editable";
 	for( guint i=0; i<numColumns; ++i ) {
 		Gtk::CellRendererText *pTextCellRenderer = dynamic_cast<Gtk::CellRendererText *>(pTreeView->get_column_cell_renderer((int)i));
+		// I do have one combo box column in the pricelist, so when I hit it, I
+		// should get a null pointer out of the dynamic cast. Seems to work, anyhow.
 		if( pTextCellRenderer ) {
 			bool editable;
 			pTextCellRenderer->get_property(editablePropertyName,editable);
 			if( !editable ) {
+				// read-only, give it a different background. I went with the non
+				// sensitive background (i.e. a disabled widget's background)
 				pTextCellRenderer->property_background_rgba() = m_readOnlyCellBackground;
 			}
 		}
+	}
+}
+
+// utility routine to draw missing values (usually a zero price or quantity) in
+// the theme's error colour
+void MainWindow::DrawColumn(Gtk::CellRendererText *r,stringstream &text,Gtk::TreeView *t,bool missing)
+{
+	// make sure that we've got a valid pointer
+	if( r ) {
+		// set the renderer's text
+		r->property_text() = text.str();
+		if( missing ) {
+			// missing values displayed in theme's error colour (usually red)
+			r->property_foreground_rgba() = m_missingValueCellForeColor;
+		} else {
+			// other values displayed in the theme's default foreground colour
+			Glib::RefPtr<Gtk::StyleContext> refStyleContext = t->get_style_context();
+			r->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
+		}
+	} else {
+		throw "null CellRendererText pointer passed to DrawColumn";
 	}
 }
 
@@ -256,9 +287,11 @@ void MainWindow::CollectionSetup()
 	pCellRenderer->set_property("editable",false);
 
 	// the number of each part present in the collection (editable)
-	GET_TEXT_RENDERER("collectionCountCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
-	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
-	pCellRenderer->set_property("xalign",1.0);
+	GET_TEXT_RENDERER("collectionCountCellRenderer",m_pCollectionCountCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
+	m_pCollectionCountCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
+	m_pCollectionCountCellRenderer->set_property("xalign",1.0);
+	// zero count will be shown in red
+	m_pCollectionView->get_column(m_collectionStore.m_count.index())->set_cell_data_func(*m_pCollectionCountCellRenderer,sigc::mem_fun(*this,&MainWindow::on_collection_count_column_drawn));
 
 	// the price of an individual part (non-editable in the collection view)
 	GET_TEXT_RENDERER("collectionPriceCellRenderer",m_pCollectionPriceCellRenderer,m_pCollectionView,m_collectionStore.m_price.index())
@@ -349,6 +382,16 @@ void MainWindow::CollectionSetup()
 	}
 }
 
+// show zero (ie not available or missing) parts in red
+void MainWindow::on_collection_count_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
+{
+	Gtk::TreeModel::Row row = *iter;
+	guint count = row[m_collectionStore.m_count];
+	stringstream temp;
+	temp << count;
+	DrawColumn(dynamic_cast<Gtk::CellRendererText *>(r),temp,m_pCollectionView,count==0);
+}
+
 // show zero (ie not available or missing) prices in red
 void MainWindow::on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &iter)
 {
@@ -356,13 +399,7 @@ void MainWindow::on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk
 	double price = row[m_collectionStore.m_price];
 	stringstream temp;
 	temp << fixed << setprecision(2) << price;
-	m_pCollectionPriceCellRenderer->property_text() = temp.str();
-	if( price == 0.0 ) {
-		m_pCollectionPriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
-	} else {
-		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pCollectionView->get_style_context();
-		m_pCollectionPriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
-	}
+	DrawColumn(dynamic_cast<Gtk::CellRendererText *>(r),temp,m_pCollectionView,price==0.0);
 }
 
 // collection view context menu popup handler
@@ -894,13 +931,7 @@ void MainWindow::on_parts_price_column_drawn(Gtk::CellRenderer *r,const Gtk::Tre
 	double price = row[m_partsStore.m_price];
 	stringstream temp;
 	temp << fixed << setprecision(2) << price;
-	m_pPartsPriceCellRenderer->property_text() = temp.str();
-	if( price == 0.0 ) {
-		m_pPartsPriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
-	} else {
-		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pPartsView->get_style_context();
-		m_pPartsPriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
-	}
+	DrawColumn(dynamic_cast<Gtk::CellRendererText *>(r),temp,m_pPartsView,price==0.0);
 }
 
 // part number header clicked on: allow search by part number
@@ -1369,13 +1400,7 @@ void MainWindow::on_toMake_price_column_drawn(Gtk::CellRenderer *r,const Gtk::Tr
 	double price = row[m_toMakeStore.m_price];
 	stringstream temp;
 	temp << fixed << setprecision(2) << price;
-	m_pToMakePriceCellRenderer->property_text() = temp.str();
-	if( price == 0.0 ) {
-		m_pToMakePriceCellRenderer->property_foreground_rgba() = m_missingPriceCellForeColor;
-	} else {
-		Glib::RefPtr<Gtk::StyleContext> refStyleContext = m_pToMakeView->get_style_context();
-		m_pToMakePriceCellRenderer->property_foreground_rgba() = refStyleContext->get_color(refStyleContext->get_state());
-	}
+	DrawColumn(dynamic_cast<Gtk::CellRendererText *>(r),temp,m_pToMakeView,price==0.0);
 }
 
 // popup menu handler
