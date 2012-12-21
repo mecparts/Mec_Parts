@@ -936,6 +936,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="collectionCountColumn">
                             <property name="title">Count</property>
+                            <property name="alignment">1</property>
                             <child>
                               <object class="GtkCellRendererText" id="collectionCountCellRendererText">
                                 <property name="alignment">right</property>
@@ -1182,6 +1183,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="toMakeCountColumn">
                             <property name="title">Count</property>
+                            <property name="alignment">1</property>
                             <child>
                               <object class="GtkCellRendererText" id="toMakeCountCellRendererText">
                                 <property name="alignment">right</property>

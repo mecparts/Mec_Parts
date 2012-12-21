@@ -289,12 +289,16 @@ void MainWindow::CollectionSetup()
 	// the number of each part present in the collection (editable)
 	GET_TEXT_RENDERER("collectionCountCellRenderer",m_pCollectionCountCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
 	m_pCollectionCountCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
+	// right align text
 	m_pCollectionCountCellRenderer->set_property("xalign",1.0);
 	// zero count will be shown in red
 	m_pCollectionView->get_column(m_collectionStore.m_count.index())->set_cell_data_func(*m_pCollectionCountCellRenderer,sigc::mem_fun(*this,&MainWindow::on_collection_count_column_drawn));
 
 	// the price of an individual part (non-editable in the collection view)
 	GET_TEXT_RENDERER("collectionPriceCellRenderer",m_pCollectionPriceCellRenderer,m_pCollectionView,m_collectionStore.m_price.index())
+	// right align column header
+	m_pCollectionView->get_column(m_collectionStore.m_price.index())->set_alignment(1.0);
+	// right align text
 	m_pCollectionPriceCellRenderer->set_property("xalign",1.0);
 	// zero prices will be shown in red
 	m_pCollectionView->get_column(m_collectionViewPriceColumnIndex)->set_cell_data_func(*m_pCollectionPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_collection_price_column_drawn));
@@ -302,6 +306,9 @@ void MainWindow::CollectionSetup()
 	// the 'total value' of each part in the collection (cost of an individual
 	// part timex the count of this part in the collection)
 	GET_TEXT_RENDERER("collectionTotalCellRenderer",pCellRenderer,m_pCollectionView,m_collectionStore.m_total.index())
+	// right align column header
+	m_pCollectionView->get_column(m_collectionStore.m_total.index())->set_alignment(1.0);
+	// right align text
 	pCellRenderer->set_property("xalign",1.0);
 	
 	// the collection combobox selector. Use the set description out of the
@@ -456,7 +463,7 @@ void MainWindow::on_collection_set_combobox_changed()
 			m_pCollectionScrolledWindow->get_vadjustment()->set_value(0);
 			// update the total # of parts of cost of parts in the collection
 			stringstream temp;
-			temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << setiosflags(ios::fixed) << setprecision(2) << m_collectionCost;
+			temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << fixed << setprecision(2) << m_collectionCost;
 			m_pCollectionCountCost->set_text(temp.str());
 		}
 	}
@@ -812,7 +819,7 @@ void MainWindow::CalculateCollectionTotals()
 		m_collectionCost += row[m_collectionStore.m_total];
 	}
 	stringstream temp;
-	temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << setiosflags(ios::fixed) << setprecision(2) << m_collectionCost;
+	temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << fixed << setprecision(2) << m_collectionCost;
 	m_pCollectionCountCost->set_text(temp.str());
 }
 #endif
@@ -826,8 +833,23 @@ void MainWindow::PartsSetup()
 	// parts treeview. Append an editable numeric column for the part price
 	// and an editable text column for the notes. Oh, c'mon Glade! :(
 	GET_WIDGET(m_refBuilder,"partsView",m_pPartsView)
-	m_partsViewPriceColumnIndex = m_pPartsView->append_column_numeric_editable("Price",m_partsStore.m_price,"%.2lf")-1;
+
+	// parts price: why not just use append_column_numeric_editable? Because that
+	// includes code that updates the liststore automatically. And I want a chance
+	// to vet the data first!
+	m_partsViewPriceColumnIndex = m_pPartsView->append_column_numeric("Price",m_partsStore.m_price,"%.2lf")-1;
 	m_pPartsView->append_column_editable("Notes",m_partsStore.m_notes);
+	GET_TEXT_RENDERER("partsPriceCellRenderer",m_pPartsPriceCellRenderer,m_pPartsView,m_partsStore.m_price.index())
+	m_pPartsPriceCellRenderer->set_property("editable",true);
+	m_pPartsPriceCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
+	// right align text
+	m_pPartsPriceCellRenderer->set_property("xalign",1.0);
+	// right align column header
+	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_alignment(1.0);
+	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_cell_data_func(*m_pPartsPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_parts_price_column_drawn));
+	// set the title of the part price column to the currently selected
+	// currency's code (which defaults to the current locale)
+	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 
 	// part description
 	Gtk::CellRendererText *pCellRenderer;
@@ -837,15 +859,6 @@ void MainWindow::PartsSetup()
 	// parts size. Essentially more description
 	GET_TEXT_RENDERER("partsSizeCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_size.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_size_edited));
-
-	// parts price
-	GET_TEXT_RENDERER("partsPriceCellRenderer",m_pPartsPriceCellRenderer,m_pPartsView,m_partsStore.m_price.index())
-	m_pPartsPriceCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_price_edited));
-	m_pPartsPriceCellRenderer->set_property("xalign",1.0);
-	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_cell_data_func(*m_pPartsPriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_parts_price_column_drawn));
-	// set the title of the part price column to the currently selected
-	// currency's code (which defaults to the current locale)
-	m_pPartsView->get_column(m_partsViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
 
 	// parts notes
 	GET_TEXT_RENDERER("partsNotesCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_notes.index())
@@ -1038,15 +1051,30 @@ void MainWindow::on_parts_size_edited(Glib::ustring pathStr, Glib::ustring text)
 	}
 }
 
+// One tricky bit is what happens when you have a pricelist in one currency,
+// and your base currency is different. Now, it's not a problem to edit the
+// prices in a different currency than they're stored it and the conversion
+// is easy. What can be a problem is when you accidently edit the price field
+// and just hit return without changing anything. You don't want to take the
+// displayed price in currency A and convert it to currency B to store it -
+// you're going to lose precision. So an effort is made to ignore 'non edit edits'.
 void MainWindow::on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text)
 {
 	GET_ITER(iter,m_pPartsStore,pathStr)
-	double price = atof(text.c_str());
-	string num = (*iter)[m_collectionStore.m_partNumber];
-	(*iter)[m_partsStore.m_price] = price;
+	double newPrice = atof(text.c_str());
+	double existingPrice = (*iter)[m_partsStore.m_price];
+	stringstream existingPriceString,newPriceString;
+	newPriceString << fixed << setprecision(2) << newPrice;
+	existingPriceString << fixed << setprecision(2) << existingPrice;
+	if( existingPriceString.str() == newPriceString.str() ) {
+		// ignore non edit edits
+		return;
+	}
+	string num = (*iter)[m_partsStore.m_partNumber];
+	(*iter)[m_partsStore.m_price] = newPrice;
 	stringstream sql;
 	sql
-		<< "UPDATE part_prices SET price=" << ToPricelistCurrency(price)
+		<< "UPDATE part_prices SET price=" << ToPricelistCurrency(newPrice)
 		<< " WHERE part_num='" << m_pSql->Escape(num) << "' AND pricelist_num=" << m_pricelistNumber;
 	if( m_pSql->ExecUpdate(&sql) == 0 ) {
 		sql.str("");
@@ -1054,7 +1082,7 @@ void MainWindow::on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text
 			<< "INSERT INTO part_prices(pricelist_num,part_num,price) VALUES ("
 			<< m_pricelistNumber
 			<< ",'" << m_pSql->Escape(num) << "',"
-			<< ToPricelistCurrency(price) << ")";
+			<< ToPricelistCurrency(newPrice) << ")";
 		m_pSql->ExecInsert(&sql);
 	}
 	// update part price and total in collection
@@ -1063,9 +1091,9 @@ void MainWindow::on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text
 		Gtk::TreeModel::Row row = *r;
 		string collectionPartNum = row[m_collectionStore.m_partNumber];
 		if( collectionPartNum == num ) {
-			row[m_collectionStore.m_price] = price;
+			row[m_collectionStore.m_price] = newPrice;
 			int count = row[m_collectionStore.m_count];
-			row[m_collectionStore.m_total] = price * count;
+			row[m_collectionStore.m_total] = newPrice * count;
 			CalculateCollectionTotals();
 			break;
 		}
@@ -1076,9 +1104,9 @@ void MainWindow::on_parts_price_edited(Glib::ustring pathStr, Glib::ustring text
 		Gtk::TreeModel::Row row = *r;
 		string toMakePartNum = row[m_toMakeStore.m_partNumber];
 		if( toMakePartNum == num ) {
-			row[m_toMakeStore.m_price] = price;
+			row[m_toMakeStore.m_price] = newPrice;
 			int count = row[m_toMakeStore.m_count];
-			row[m_toMakeStore.m_total] = price * count;
+			row[m_toMakeStore.m_total] = newPrice * count;
 			CalculateToMakeTotals();
 			break;
 		}
@@ -1358,11 +1386,17 @@ void MainWindow::ToMakeSetup()
 	// read only columns are shown with a grey background, editable columns have a white one
 	// no columns in the to make view are editable
 	GET_TEXT_RENDERER("toMakePriceCellRenderer",m_pToMakePriceCellRenderer,m_pToMakeView,m_toMakeStore.m_price.index())
+	// right align text
 	m_pToMakePriceCellRenderer->set_property("xalign",1.0);
+	// right align column header
+	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_alignment(1.0);
 	// zero prices will be shown in red
 	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_cell_data_func(*m_pToMakePriceCellRenderer,sigc::mem_fun(*this,&MainWindow::on_toMake_price_column_drawn));
 
 	GET_TEXT_RENDERER("toMakeTotalCellRenderer",pCellRenderer,m_pToMakeView,m_toMakeStore.m_total.index())
+	// right align column header
+	m_pToMakeView->get_column(m_toMakeStore.m_total.index())->set_alignment(1.0);
+	// right align text
 	pCellRenderer->set_property("xalign",1.0);
 	
 	// 'have' combo box
@@ -1533,7 +1567,7 @@ void MainWindow::FillToMake()
 
 			// The PopulateToMake routine calculates the parts costs
 			stringstream temp;
-			temp << setiosflags(ios::fixed) << setprecision(2) << m_toMakeCost;
+			temp << fixed << setprecision(2) << m_toMakeCost;
 			m_pToMakeCost->set_text(temp.str());
 		}
 	}
@@ -1573,7 +1607,7 @@ void MainWindow::CalculateToMakeTotals()
 		m_toMakeCost += row[m_toMakeStore.m_total];
 	}
 	stringstream temp;
-	temp << setiosflags(ios::fixed) << setprecision(2) << m_toMakeCost;
+	temp << fixed << setprecision(2) << m_toMakeCost;
 	m_pToMakeCost->set_text(temp.str());
 }
 #endif
@@ -2059,6 +2093,7 @@ void MainWindow::RefreshPrices()
 		// stored in the 3 list stores. That means I don't have to search the list
 		// stores for the matching part. Just iterate along each part and look for
 		// a match at the *current* iteration position in each liststore.
+		cout << "refreshing prices" << endl;
 		Gtk::TreeModel::Children partsRows = m_pPartsStore->children();
 		Gtk::TreeModel::Children collectionRows = m_pCollectionStore->children();
 		Gtk::TreeModel::iterator collectionIterator = collectionRows.begin();
