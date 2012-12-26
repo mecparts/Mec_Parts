@@ -1502,7 +1502,7 @@ void MainWindow::RefreshToMake()
 			string haveNum = haveRow[m_setsStore.m_setNumber];
 			string wantNum = wantRow[m_setsStore.m_setNumber];
 			
-			if( haveNum == m_collectionNumber || haveNum == m_collectionNumber ) {
+			if( haveNum == m_collectionNumber || wantNum == m_collectionNumber ) {
 				FillToMake();
 			}
 		}
