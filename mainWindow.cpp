@@ -285,7 +285,8 @@ void MainWindow::CollectionSetup()
 	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("collectionNotesCellRenderer",pCellRenderer,m_pCollectionView,collectionViewNotesColumnIndex);
 	pCellRenderer->set_property("editable",false);
-
+	m_pCollectionView->get_column(m_collectionStore.m_notes.index())->set_clickable(true);
+	
 	// the number of each part present in the collection (editable)
 	GET_TEXT_RENDERER("collectionCountCellRenderer",m_pCollectionCountCellRenderer,m_pCollectionView,m_collectionStore.m_count.index())
 	m_pCollectionCountCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_collection_count_edited));
@@ -346,6 +347,8 @@ void MainWindow::CollectionSetup()
 	// (allows searching the collection on either the part number or description)
 	m_pCollectionView->get_column(m_collectionStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_partNumber_clicked));
 	m_pCollectionView->get_column(m_collectionStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_description_clicked));
+	m_pCollectionView->get_column(m_collectionStore.m_size.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_size_clicked));
+	m_pCollectionView->get_column(m_collectionStore.m_notes.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_collection_notes_clicked));
 
 	// change the background on all non editable columns
 	TagReadOnlyColumns(m_pCollectionView);
@@ -777,6 +780,18 @@ void MainWindow::on_collection_description_clicked()
 	m_pCollectionView->grab_focus();
 }
 
+void MainWindow::on_collection_size_clicked()
+{
+	m_pCollectionView->set_search_column(m_collectionStore.m_size.index());
+	m_pCollectionView->grab_focus();
+}
+
+void MainWindow::on_collection_notes_clicked()
+{
+	m_pCollectionView->set_search_column(m_collectionStore.m_notes.index());
+	m_pCollectionView->grab_focus();
+}
+
 // When a part's count is edited, update the count in the datastore and calculate
 // the new total and update that in the datastore as well. Then update the
 // parts count in the database and recalculate the collection totals. Finally,
@@ -863,13 +878,16 @@ void MainWindow::PartsSetup()
 	// parts notes
 	GET_TEXT_RENDERER("partsNotesCellRenderer",pCellRenderer,m_pPartsView,m_partsStore.m_notes.index())
 	pCellRenderer->signal_edited().connect(sigc::mem_fun(*this,&MainWindow::on_parts_notes_edited));
-
+	m_pPartsView->get_column(m_partsStore.m_notes.index())->set_clickable(true);
+	
 	// parts view popup context menu
 	m_pPartsView->signal_button_press_event().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_button_pressed));
 
 	// allow searching on part number or part description
 	m_pPartsView->get_column(m_partsStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_partNumber_clicked));
 	m_pPartsView->get_column(m_partsStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_description_clicked));
+	m_pPartsView->get_column(m_partsStore.m_size.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_size_clicked));
+	m_pPartsView->get_column(m_partsStore.m_notes.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_parts_notes_clicked));
 
 	// parts context menu
 	GET_WIDGET(m_refBuilder,"partsContextMenu",m_pPartsContextMenu)
@@ -958,6 +976,18 @@ void MainWindow::on_parts_partNumber_clicked()
 void MainWindow::on_parts_description_clicked()
 {
 	m_pPartsView->set_search_column(m_partsStore.m_description.index());
+	m_pPartsView->grab_focus();
+}
+
+void MainWindow::on_parts_size_clicked()
+{
+	m_pPartsView->set_search_column(m_partsStore.m_size.index());
+	m_pPartsView->grab_focus();
+}
+
+void MainWindow::on_parts_notes_clicked()
+{
+	m_pPartsView->set_search_column(m_partsStore.m_notes.index());
 	m_pPartsView->grab_focus();
 }
 
@@ -1382,7 +1412,8 @@ void MainWindow::ToMakeSetup()
 	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("toMakeNotesCellRenderer",pCellRenderer,m_pToMakeView,toMakeViewNotesColumnIndex);
 	pCellRenderer->set_property("editable",false);
-
+	m_pToMakeView->get_column(m_toMakeStore.m_notes.index())->set_clickable(true);
+	
 	// read only columns are shown with a grey background, editable columns have a white one
 	// no columns in the to make view are editable
 	GET_TEXT_RENDERER("toMakePriceCellRenderer",m_pToMakePriceCellRenderer,m_pToMakeView,m_toMakeStore.m_price.index())
@@ -1419,6 +1450,8 @@ void MainWindow::ToMakeSetup()
 	// searchable on part number or part description
 	m_pToMakeView->get_column(m_toMakeStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_partNumber_clicked));
 	m_pToMakeView->get_column(m_toMakeStore.m_description.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_description_clicked));
+	m_pToMakeView->get_column(m_toMakeStore.m_size.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_size_clicked));
+	m_pToMakeView->get_column(m_toMakeStore.m_notes.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_notes_clicked));
 
 	// currency code in use
 	m_pToMakeView->get_column(m_toMakeViewPriceColumnIndex)->set_title(m_baseCurrencyCode);
@@ -1478,6 +1511,18 @@ void MainWindow::on_toMake_partNumber_clicked()
 void MainWindow::on_toMake_description_clicked()
 {
 	m_pToMakeView->set_search_column(m_toMakeStore.m_description.index());
+	m_pToMakeView->grab_focus();
+}
+
+void MainWindow::on_toMake_size_clicked()
+{
+	m_pToMakeView->set_search_column(m_toMakeStore.m_size.index());
+	m_pToMakeView->grab_focus();
+}
+
+void MainWindow::on_toMake_notes_clicked()
+{
+	m_pToMakeView->set_search_column(m_toMakeStore.m_notes.index());
 	m_pToMakeView->grab_focus();
 }
 

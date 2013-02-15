@@ -165,6 +165,8 @@ class MainWindow
 		void on_collectionImportParts_activated();
 		void on_collection_partNumber_clicked();
 		void on_collection_description_clicked();
+		void on_collection_size_clicked();
+		void on_collection_notes_clicked();
 		bool AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool updateIfFound);
 		void CalculateCollectionTotals();
 
@@ -188,6 +190,8 @@ class MainWindow
 		void on_partsUnfilterSets_activated();
 		void on_parts_partNumber_clicked();
 		void on_parts_description_clicked();
+		void on_parts_size_clicked();
+		void on_parts_notes_clicked();
 		void on_parts_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void UpdateParts(string num,string field);
 		Gtk::Menu *m_pPartsContextMenu;
@@ -238,6 +242,8 @@ class MainWindow
 		void on_toMakeViewPart_activated();
 		void on_toMake_partNumber_clicked();
 		void on_toMake_description_clicked();
+		void on_toMake_size_clicked();
+		void on_toMake_notes_clicked();
 		void RefreshToMake();
 		void FillToMake();
 		void CalculateToMakeTotals();

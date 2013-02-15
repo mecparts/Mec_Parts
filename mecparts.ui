@@ -925,6 +925,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="collectionSizeColumn">
                             <property name="title">Size</property>
+                            <property name="clickable">True</property>
                             <child>
                               <object class="GtkCellRendererText" id="collectionSizeCellRendererText"/>
                               <attributes>
@@ -1014,6 +1015,7 @@
                     <child>
                       <object class="GtkTreeViewColumn" id="partsSizeColumn">
                         <property name="title">Size</property>
+                        <property name="clickable">True</property>
                         <child>
                           <object class="GtkCellRendererText" id="partsSizeCellRendererText">
                             <property name="editable">True</property>
@@ -1172,6 +1174,7 @@
                         <child>
                           <object class="GtkTreeViewColumn" id="toMakeSizeColumn">
                             <property name="title">Size</property>
+                            <property name="clickable">True</property>
                             <child>
                               <object class="GtkCellRendererText" id="toMakeSizeCellRendererText"/>
                               <attributes>
