@@ -1813,27 +1813,32 @@ void MainWindow::on_setsNewSet_activated()
 			// find the appropriate insertion point in the sets datastore
 			Gtk::TreeModel::Row newRow;
 			bool alreadyExists = false;
-			bool inserted = false;
 			Gtk::TreeModel::Children setsRows = m_pSetsStore->children();
 			for( Gtk::TreeModel::iterator iter = setsRows.begin(); iter!= setsRows.end(); ++iter ) {
 				Gtk::TreeModel::Row setsRow = *iter;
 				string setNum = setsRow[m_setsStore.m_setNumber];
-				string description = setsRow[m_setsStore.m_description];
-				int started = setsRow[m_setsStore.m_started];
 				// does it already exist?
 				if( new_setNum == setNum ) {
 					errorLabel = "Set number "+new_setNum+" already exists!";
 					alreadyExists = true;
 					break;
-				} else if( new_started > started || (new_started == started && new_description < description) ) {
-					// insert here
-					newRow = *(m_pSetsStore->insert(iter));
-					inserted = true;
-					break;
 				}
 			}
 			if( !alreadyExists ) {
-				errorLabel = "";
+				bool inserted = false;
+				for( Gtk::TreeModel::iterator iter = setsRows.begin(); iter!= setsRows.end(); ++iter ) {
+					Gtk::TreeModel::Row setsRow = *iter;
+					string setNum = setsRow[m_setsStore.m_setNumber];
+					string description = setsRow[m_setsStore.m_description];
+					int started = setsRow[m_setsStore.m_started];
+					// does it already exist?
+					if( new_started > started || (new_started == started && new_description < description) ) {
+						// insert here
+						newRow = *(m_pSetsStore->insert(iter));
+						inserted = true;
+						break;
+					}
+				}
 				// does it need to be added to the end of the sets list?
 				if( !inserted ) {
 					newRow = *(m_pSetsStore->append());
