@@ -141,6 +141,7 @@ class MainWindow
 		Gtk::CellRendererText *m_pCollectionCountCellRenderer;
 		Gtk::CellRendererText *m_pCollectionPriceCellRenderer;
 		Gtk::Label *m_pCollectionCountCost;
+		Gtk::Button *m_pCollectionManualButton;
 		Gtk::ComboBox *m_pCollectionSetComboBox;
 		Gtk::Menu *m_pCollectionContextMenu;
 		Gtk::ScrolledWindow *m_pCollectionScrolledWindow;
@@ -154,6 +155,7 @@ class MainWindow
 		int m_collectionViewPriceColumnIndex;
 		void CollectionSetup();
 		void on_collection_set_combobox_changed();
+		void on_collection_manual_button_clicked();
 		void on_collection_count_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_collection_count_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
@@ -216,11 +218,13 @@ class MainWindow
 		void on_sets_button_pressed(GdkEventButton *pEvent);
 		void on_setsNewSet_activated();
 		void on_setsDeleteSet_activated();
+		void on_setsViewManual_activated();
 		void on_sets_setNumber_clicked();
 		void on_sets_description_clicked();
 		Gtk::Menu *m_pSetsContextMenu;
 		Gtk::MenuItem *m_pSetsNewSetMenuItem;
 		Gtk::MenuItem *m_pSetsDeleteSetMenuItem;
+		Gtk::MenuItem *m_pSetsViewManualMenuItem;
 		
 	private:
 		Gtk::ScrolledWindow *m_pToMakeScrolledWindow;

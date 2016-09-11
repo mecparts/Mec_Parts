@@ -273,7 +273,11 @@ void MainWindow::CollectionSetup()
 
 	// total value of the parts in the collection
 	GET_WIDGET(m_refBuilder,"collectionCountCost",m_pCollectionCountCost);
-
+	
+	// display collection manual
+  GET_WIDGET(m_refBuilder,"collectionManualButton",m_pCollectionManualButton);
+	m_pCollectionManualButton->signal_clicked().connect(sigc::mem_fun(*this,&MainWindow::on_collection_manual_button_clicked));
+  
 	// the backing data store for the collection tree view
 	GET_OBJECT(m_refBuilder,"collectionStore",m_pCollectionStore,ListStore);
 	
@@ -438,6 +442,7 @@ void MainWindow::on_collection_set_combobox_changed()
 	m_collectionPartsCount = 0;   // zero parts and cost
 	m_collectionCost = 0;
 	m_pCollectionCountCost->set_text("");
+	m_pCollectionManualButton->set_sensitive(false);
 	// grab newly selected set
 	Gtk::TreeModel::iterator iter = m_pCollectionSetComboBox->get_active();
 	if(iter) {
@@ -468,7 +473,24 @@ void MainWindow::on_collection_set_combobox_changed()
 			stringstream temp;
 			temp << "# Parts: " << m_collectionPartsCount << "  Total Cost: " << fixed << setprecision(2) << m_collectionCost;
 			m_pCollectionCountCost->set_text(temp.str());
+			string manual = Glib::build_filename(m_baseDir,"Manuals",m_collectionNumber+".pdf");
+			m_pCollectionManualButton->set_sensitive(Glib::file_test(manual,Glib::FILE_TEST_EXISTS));
 		}
+	}
+}
+
+// Display the manual associated with a collection.
+// The manual PDF is looked for in ~/.mecparts/Manuals/[set #].pdf
+void MainWindow::on_collection_manual_button_clicked()
+{
+	string manual = Glib::build_filename(m_baseDir,"Manuals",m_collectionNumber+".pdf");
+	if( Glib::file_test(manual,Glib::FILE_TEST_EXISTS) ) {
+		vector<string> args;
+		args.push_back("/usr/bin/xdg-open");
+		args.push_back(manual);
+		Glib::spawn_async("", args);
+	} else {
+		Gdk::Display::get_default()->beep();
 	}
 }
 
@@ -1666,11 +1688,11 @@ void MainWindow::SetsSetup()
 	// the sets datastore
 	GET_OBJECT(m_refBuilder,"setsStore",m_pSetsStore,ListStore)
 
-	// the sets treeview with a couple of numeric columns added for the dates
+	// the sets treeview with a couple of numeric columns added for the dates 
 	GET_WIDGET(m_refBuilder,"setsView",m_pSetsView)
 	m_pSetsView->append_column_numeric_editable("Started",m_setsStore.m_started,"%d");
 	m_pSetsView->append_column_numeric_editable("Ended",m_setsStore.m_ended,"%d");
-	
+  
 	// description edited handler
 	Gtk::CellRendererText *pCellRenderer;
 	GET_TEXT_RENDERER("setsDescriptionCellRenderer",pCellRenderer,m_pSetsView,m_setsStore.m_description.index())
@@ -1695,6 +1717,9 @@ void MainWindow::SetsSetup()
 	// delete set menu item
 	GET_WIDGET(m_refBuilder,"setsDeleteSetMenuItem",m_pSetsDeleteSetMenuItem)
 	m_pSetsDeleteSetMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_setsDeleteSet_activated));
+	// view manual menu item
+	GET_WIDGET(m_refBuilder,"setsViewManualMenuItem",m_pSetsViewManualMenuItem)
+	m_pSetsViewManualMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_setsViewManual_activated));
 
 	// search sets treeview on set number or description
 	m_pSetsView->get_column(m_setsStore.m_setNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_sets_setNumber_clicked));
@@ -1793,8 +1818,18 @@ void MainWindow::on_sets_button_pressed(GdkEventButton *pEvent)
 			// make sure it's selected
 			m_pSetsView->set_cursor(path);
 		}
-		// only enable deletion if a set is selected
-		m_pSetsDeleteSetMenuItem->set_sensitive(m_pSetsView->get_selection()->count_selected_rows() != 0);
+		// only enable deletion and view if a set is selected
+		bool setSelected = m_pSetsView->get_selection()->count_selected_rows() != 0;
+		m_pSetsDeleteSetMenuItem->set_sensitive(setSelected);
+		if( setSelected ) {
+			Gtk::TreeModel::iterator iter = m_pSetsView->get_selection()->get_selected();
+			Gtk::TreeModel::Row row = *iter;
+			string setNumber = row[m_setsStore.m_setNumber];
+			string manual = Glib::build_filename(m_baseDir,"Manuals",setNumber+".pdf");
+			m_pSetsViewManualMenuItem->set_sensitive(Glib::file_test(manual,Glib::FILE_TEST_EXISTS));
+		} else {
+			m_pSetsViewManualMenuItem->set_sensitive(FALSE);
+		}
 		m_pSetsContextMenu->popup(pEvent->button,pEvent->time);
 	}
 }
@@ -1882,6 +1917,26 @@ void MainWindow::on_setsDeleteSet_activated()
 			stringstream sql;
 			sql << "DELETE FROM set_parts WHERE set_num='" << m_pSql->Escape(setNum) << "'; DELETE FROM sets WHERE num='" << m_pSql->Escape(setNum) << "'";
 			m_pSql->ExecNonQuery(&sql);
+		}
+	}
+}
+
+// view the manual associated with a set (if there is one)
+void MainWindow::on_setsViewManual_activated()
+{
+	Gtk::TreeModel::iterator iter = m_pSetsView->get_selection()->get_selected();
+
+	if( iter ) {
+		Gtk::TreeModel::Row row = *iter;
+		string setNumber = row[m_setsStore.m_setNumber];
+		string manual = Glib::build_filename(m_baseDir,"Manuals",setNumber+".pdf");
+		if( Glib::file_test(manual,Glib::FILE_TEST_EXISTS) ) {
+			vector<string> args;
+			args.push_back("/usr/bin/xdg-open");
+			args.push_back(manual);
+			Glib::spawn_async("", args);
+		} else {
+			Gdk::Display::get_default()->beep();
 		}
 	}
 }
