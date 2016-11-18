@@ -255,6 +255,22 @@ void MainWindow::DisplayPicture(string partNumber,string description,string size
 	pictureDialog.run();
 	delete pImage;
 }
+
+// Display a part drawing. Look in the Drawing subdirectory (relative to where the executable is
+// running from). Look for an image file named for the part with a jpg extension.
+// running from). Look for an image file named for the part with a jpg extension.
+void MainWindow::DisplayDrawing(string partNumber)
+{
+	string drawing = Glib::build_filename(m_baseDir,"Drawings",partNumber+".jpg");
+	if( Glib::file_test(drawing,Glib::FILE_TEST_EXISTS) ) {
+		vector<string> args;
+		args.push_back("/usr/bin/xdg-open");
+		args.push_back(drawing);
+		Glib::spawn_async("", args);
+	} else {
+		Gdk::Display::get_default()->beep();
+	}
+}
 #endif
 #ifndef _Collection_Routines
 // Collection tab setup: the Collection tab shows the contents of a set (ie a
@@ -331,6 +347,10 @@ void MainWindow::CollectionSetup()
 	// the view part popup menu item
 	GET_WIDGET(m_refBuilder,"collectionViewPartMenuItem",m_pCollectionViewPartMenuItem)
 	m_pCollectionViewPartMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_collectionViewPart_activated));
+
+	// the view drawing popup menu item
+	GET_WIDGET(m_refBuilder,"collectionViewDrawingMenuItem",m_pCollectionViewDrawingMenuItem)
+	m_pCollectionViewDrawingMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_collectionViewDrawing_activated));
 
 	// the add part popup menu item
 	GET_WIDGET(m_refBuilder,"collectionAddPartMenuItem",m_pCollectionAddPartMenuItem)
@@ -430,6 +450,20 @@ void MainWindow::on_collection_button_pressed(GdkEventButton *pEvent)
 		bool partSelected = m_pCollectionView->get_selection()->count_selected_rows() != 0;
 		m_pCollectionViewPartMenuItem->set_sensitive(partSelected);
 		m_pCollectionDeletePartMenuItem->set_sensitive(partSelected);
+    if( partSelected ) {
+			// view drawing only if it exists ###
+			Gtk::TreeModel::iterator iter = m_pCollectionView->get_selection()->get_selected();
+			if( iter ) {
+				Gtk::TreeModel::Row row = *iter;
+				string partNumber = row[m_collectionStore.m_partNumber];
+				string drawing = Glib::build_filename(m_baseDir,"Drawings",partNumber+".jpg");
+				m_pCollectionViewDrawingMenuItem->set_sensitive(Glib::file_test(drawing,Glib::FILE_TEST_EXISTS));
+			} else {
+				m_pCollectionViewDrawingMenuItem->set_sensitive(false);
+			}
+		} else {
+			m_pCollectionViewDrawingMenuItem->set_sensitive(false);
+		}
 		// show the popup menu
 		m_pCollectionContextMenu->popup(pEvent->button,pEvent->time);
 	}
@@ -543,6 +577,20 @@ void MainWindow::on_collectionViewPart_activated()
 		string notes = row[m_collectionStore.m_notes];
 		// and display it
 		DisplayPicture(partNumber,description,size,notes);
+	}
+}
+
+// display the currently selected part
+void MainWindow::on_collectionViewDrawing_activated()
+{
+	// fin the currently selected part
+	Gtk::TreeModel::iterator iter = m_pCollectionView->get_selection()->get_selected();
+	if( iter ) {
+		// grab its information
+		Gtk::TreeModel::Row row = *iter;
+		string partNumber = row[m_collectionStore.m_partNumber];
+		// and display it
+		DisplayDrawing(partNumber);
 	}
 }
 
@@ -913,8 +961,12 @@ void MainWindow::PartsSetup()
 
 	// parts context menu
 	GET_WIDGET(m_refBuilder,"partsContextMenu",m_pPartsContextMenu)
+
 	GET_WIDGET(m_refBuilder,"partsViewPartMenuItem",m_pPartsViewPartMenuItem)
 	m_pPartsViewPartMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_partsViewPart_activated));
+
+	GET_WIDGET(m_refBuilder,"partsViewDrawingMenuItem",m_pPartsViewDrawingMenuItem)
+	m_pPartsViewDrawingMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_partsViewDrawing_activated));
 
 	// create new part menu item
 	GET_WIDGET(m_refBuilder,"partsNewPartMenuItem",m_pPartsNewPartMenuItem)
@@ -1205,10 +1257,12 @@ void MainWindow::on_parts_button_pressed(GdkEventButton *pEvent)
 		Gtk::TreeModel::Path path;
 		// assume the cursor wasn't not on a part until proven otherwise
 		m_pPartsViewPartMenuItem->set_sensitive(false);
+		m_pPartsViewDrawingMenuItem->set_sensitive(false);
 		m_pPartsDeletePartMenuItem->set_sensitive(false);
 		m_pPartsFilterSetsMenuItem->set_sensitive(false);
 		// if we're currently filtering sets, allow them to be unfiltered
 		m_pPartsUnfilterSetsMenuItem->set_sensitive(m_bSetsFiltered);
+		// see if we've got a part drawing
 		if( m_pPartsView->get_path_at_pos((int)pEvent->x,(int)pEvent->y,path) ) {
 			// make sure the current part is selected
 			m_pPartsView->set_cursor(path);
@@ -1216,6 +1270,14 @@ void MainWindow::on_parts_button_pressed(GdkEventButton *pEvent)
 			m_pPartsViewPartMenuItem->set_sensitive(true);
 			m_pPartsDeletePartMenuItem->set_sensitive(true);
 			m_pPartsFilterSetsMenuItem->set_sensitive(true);
+			// view drawing only if it exists ###
+			Gtk::TreeModel::iterator iter = m_pPartsView->get_selection()->get_selected();
+			if( iter ) {
+				Gtk::TreeModel::Row row = *iter;
+				string partNumber = row[m_partsStore.m_partNumber];
+				string drawing = Glib::build_filename(m_baseDir,"Drawings",partNumber+".jpg");
+				m_pPartsViewDrawingMenuItem->set_sensitive(Glib::file_test(drawing,Glib::FILE_TEST_EXISTS));
+			}
 		}
 		// show the popup menu
 		m_pPartsContextMenu->popup(pEvent->button,pEvent->time);
@@ -1233,6 +1295,17 @@ void MainWindow::on_partsViewPart_activated()
 		string size = row[m_partsStore.m_size];
 		string notes = row[m_partsStore.m_notes];
 		DisplayPicture(partNumber,description,size,notes);
+	}
+}
+
+// display part drawing if we've got one
+void MainWindow::on_partsViewDrawing_activated()
+{
+	Gtk::TreeModel::iterator iter = m_pPartsView->get_selection()->get_selected();
+	if( iter ) {
+		Gtk::TreeModel::Row row = *iter;
+		string partNumber = row[m_partsStore.m_partNumber];
+		DisplayDrawing(partNumber);
 	}
 }
 
@@ -1468,6 +1541,8 @@ void MainWindow::ToMakeSetup()
 	// view part menu item
 	GET_WIDGET(m_refBuilder,"toMakeViewPartMenuItem",m_pToMakeViewPartMenuItem)
 	m_pToMakeViewPartMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_toMakeViewPart_activated));
+	GET_WIDGET(m_refBuilder,"toMakeViewDrawingMenuItem",m_pToMakeViewDrawingMenuItem)
+	m_pToMakeViewDrawingMenuItem->signal_activate().connect(sigc::mem_fun(*this,&MainWindow::on_toMakeViewDrawing_activated));
 
 	// searchable on part number or part description
 	m_pToMakeView->get_column(m_toMakeStore.m_partNumber.index())->signal_clicked().connect_notify(sigc::mem_fun(*this,&MainWindow::on_toMake_partNumber_clicked));
@@ -1502,6 +1577,14 @@ void MainWindow::on_toMake_button_pressed(GdkEventButton *pEvent)
 		if( m_pToMakeView->get_path_at_pos((int)pEvent->x,(int)pEvent->y,path) ) {
 			// make sure the part is selected
 			m_pToMakeView->set_cursor(path);
+			// view drawing only if it exists ###
+			Gtk::TreeModel::iterator iter = m_pToMakeView->get_selection()->get_selected();
+			if( iter ) {
+				Gtk::TreeModel::Row row = *iter;
+				string partNumber = row[m_toMakeStore.m_partNumber];
+				string drawing = Glib::build_filename(m_baseDir,"Drawings",partNumber+".jpg");
+				m_pToMakeViewDrawingMenuItem->set_sensitive(Glib::file_test(drawing,Glib::FILE_TEST_EXISTS));
+			}
 			// and pop up the menu
 			m_pToMakeContextMenu->popup(pEvent->button,pEvent->time);
 		}
@@ -1519,6 +1602,17 @@ void MainWindow::on_toMakeViewPart_activated()
 		string size = row[m_toMakeStore.m_size];
 		string notes = row[m_toMakeStore.m_notes];
 		DisplayPicture(partNumber,description,size,notes);
+	}
+}
+
+// display part drawing
+void MainWindow::on_toMakeViewDrawing_activated()
+{
+	Gtk::TreeModel::iterator iter = m_pToMakeView->get_selection()->get_selected();
+	if( iter ) {
+		Gtk::TreeModel::Row row = *iter;
+		string partNumber = row[m_toMakeStore.m_partNumber];
+		DisplayDrawing(partNumber);
 	}
 }
 

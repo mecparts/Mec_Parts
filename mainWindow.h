@@ -81,6 +81,7 @@ class MainWindow
 		void TagReadOnlyColumns(Gtk::TreeView *pTreeView);
 		void DrawColumn(Gtk::CellRendererText *r,stringstream &text,Gtk::TreeView *t,bool missing);
 		void DisplayPicture(string partNumber,string description,string size,string notes);
+		void DisplayDrawing(string partNumber);
 		Gtk::ComboBox *m_pPricelistComboBox;
 		Gtk::ComboBox *m_pCurrencyComboBox;
 		Gdk::RGBA m_readOnlyCellBackground;
@@ -146,6 +147,7 @@ class MainWindow
 		Gtk::Menu *m_pCollectionContextMenu;
 		Gtk::ScrolledWindow *m_pCollectionScrolledWindow;
 		Gtk::MenuItem *m_pCollectionViewPartMenuItem;
+		Gtk::MenuItem *m_pCollectionViewDrawingMenuItem;
 		Gtk::MenuItem *m_pCollectionAddPartMenuItem;
 		Gtk::MenuItem *m_pCollectionDeletePartMenuItem;
 		Gtk::MenuItem *m_pCollectionAddSetMenuItem;
@@ -161,6 +163,7 @@ class MainWindow
 		void on_collection_price_column_drawn(Gtk::CellRenderer *r,const Gtk::TreeModel::iterator &i);
 		void on_collection_button_pressed(GdkEventButton *pEvent);
 		void on_collectionViewPart_activated();
+		void on_collectionViewDrawing_activated();
 		void on_collectionAddPart_activated();
 		void on_collectionDeletePart_activated();
 		void on_collectionAddSet_activated();
@@ -186,6 +189,7 @@ class MainWindow
 		void on_parts_notes_edited(Glib::ustring pathStr, Glib::ustring text);
 		void on_parts_button_pressed(GdkEventButton *pEvent);
 		void on_partsViewPart_activated();
+		void on_partsViewDrawing_activated();
 		void on_partsNewPart_activated();
 		void on_partsDeletePart_activated();
 		void on_partsFilterSets_activated();
@@ -198,6 +202,7 @@ class MainWindow
 		void UpdateParts(string num,string field);
 		Gtk::Menu *m_pPartsContextMenu;
 		Gtk::MenuItem *m_pPartsViewPartMenuItem;
+		Gtk::MenuItem *m_pPartsViewDrawingMenuItem;
 		Gtk::MenuItem *m_pPartsNewPartMenuItem;
 		Gtk::MenuItem *m_pPartsDeletePartMenuItem;
 		Gtk::MenuItem *m_pPartsFilterSetsMenuItem;
@@ -237,6 +242,7 @@ class MainWindow
 		Gtk::ComboBox *m_pToMakeWantComboBox;
 		Gtk::Menu *m_pToMakeContextMenu;
 		Gtk::MenuItem *m_pToMakeViewPartMenuItem;
+		Gtk::MenuItem *m_pToMakeViewDrawingMenuItem;
 		double m_toMakeCost;
 		int m_toMakeViewPriceColumnIndex;
 		void ToMakeSetup();
@@ -244,6 +250,7 @@ class MainWindow
 		void on_toMakeComboBox_changed();
 		void on_toMake_button_pressed(GdkEventButton *pEvent);
 		void on_toMakeViewPart_activated();
+		void on_toMakeViewDrawing_activated();
 		void on_toMake_partNumber_clicked();
 		void on_toMake_description_clicked();
 		void on_toMake_size_clicked();
