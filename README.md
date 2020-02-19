@@ -1,6 +1,6 @@
-MecParts
---------
-A Meccano Parts inventory database application
+# MecParts
+
+## A Meccano Parts inventory database application
 
 I wouldn't be surprised if I'm one of a *very* few people who's into both
 Meccano *and* Linux. I wouldn't even be all that shocked to find out that I'm
@@ -17,14 +17,14 @@ I *really* did need something to keep track of my Meccano! But you get the idea.
 Could this be ported to Windows? Yes. The most direct route is to build it
 under Cygwin. But the gtkmm libraries aren't a standard part of Cygwin so
 you'll have to go hunting for them, and you'll have to edit the Makefile and
-change 'LIBS = -lboost_regex' to 'LIBS = -lboost_regex-mt'. Start at
-http://sourceware.org/cygwinports/ and good luck! It does 'sort of' work;
-I kept getting Gtk errors every time I tried reading any image file until I
-installed eog (Eye of Gnome). It's also dreadfully slow. I think rewriting the
-app as a native C# application would be a better idea.
+change **LIBS = -lboost_regex** to **LIBS = -lboost_regex-mt**. Start at
+[http://sourceware.org/cygwinports/](http://sourceware.org/cygwinports/) and 
+good luck! It does *sort of* work; I kept getting Gtk errors every time I tried
+reading any image file until I installed eog (Eye of Gnome). It's also 
+dreadfully slow. I think rewriting the app as a native C# application would be
+a better idea.
 
-How to install MecParts
------------------------
+### How to install MecParts
 
 I didn't even consider packaging this up into a .deb package (and as it turns
 out the Debian package manager isn't really intended for installing things
@@ -32,22 +32,22 @@ into a user's home directory).  I did eventually put the source into a
 repository at github. Assuming you already have git installed on your system,
 you can grab a copy of the repository with
 
-git clone git://github.com/mecparts/MecParts.git
+    git clone git://github.com/mecparts/MecParts.git
 
 That'll create a MecParts directory in your current directory and fill it with
 the MecParts source code. Install the development libraries, cd into MecParts,
-do a 'make install' and you're done.
+do a *make install* and you're done.
 
 It sounds so easy if you say it quick, doesn't it?
 
 On a freshly installed Ubuntu 12.04 system, I had to install the following four
 development libraries:
 
-sudo apt-get update
-sudo apt-get install libgtkmm-3.0-dev libboost-regex-dev libsqlite3-dev libxml2-dev
+    sudo apt-get update
+    sudo apt-get install libgtkmm-3.0-dev libboost-regex-dev libsqlite3-dev libxml2-dev
 
 They installed a whole bunch of other dependencies along the way, including the
-compiler. Once they are all installed, a simple 'make install' in the MecParts
+compiler. Once they are all installed, a simple *make install* in the MecParts
 directory does the rest. You get an icon on the desktop, a sample database
 with dozens of sets and hundreds of parts and even a smattering of part
 pictures. You can add your own part pictures into the ~/.mecparts/Pictures sub 
@@ -61,10 +61,9 @@ wouldn't be polite. Maybe one day I'll have nothing else to do but go through
 my collection and photograph one of each of my parts but until then you'll have
 to dig up your own images.
 
-The bits and pieces of MecPart's database
------------------------------------------
+## The bits and pieces of MecPart's database
 
-PART: exactly what you think it is, a description of a single Meccano part. A
+**PART**: exactly what you think it is, a description of a single Meccano part. A
 part has:
 
  * a unique part number, which is composed of three parts:
@@ -83,7 +82,7 @@ number. You can use JPEGs, GIFs, PNGs, BMPs or even TIFFs. The program is going
 to scale them to fit in a 300x300 box when it displays them so large images
 will only slow things down.
 
-SET: the name of a collection of parts. A set can be an actual Meccano set,
+**SET**: the name of a collection of parts. A set can be an actual Meccano set,
 the parts list of a model, the contents of an order from a parts supplier, or
 any other collection you can think of. A set has:
 
@@ -92,17 +91,17 @@ any other collection you can think of. A set has:
  * a starting year (used for sorting the list of sets),
  * and an ending year.
 
-COLLECTION: the collection of parts contained in a set. Each part in a
+**COLLECTION**: the collection of parts contained in a set. Each part in a
 collection has a count, namely the number of this part found in this set.
 
-PRICELIST: A pricelist is a collection of part prices in a particular currency.
+**PRICELIST**: A pricelist is a collection of part prices in a particular currency.
 It's meant to be used as a vendor's pricelist though there are doubtless other
 uses as well. Each pricelist has:
 
  * a name,
  * and a currency (the currency that the prices in this list are in).
 
-PRICE: each part can have price in each pricelist. If a part isn't available
+**PRICE**: each part can have price in each pricelist. If a part isn't available
 from a particular supplier, it won't have a price in their pricelist. Prices
 are stored in the native currency of the pricelist it belongs to. When prices
 are displayed, they are converted on the fly to whatever currency you've chosen
@@ -111,7 +110,7 @@ new part, if you enter a price it that price is in the currency of the current
 pricelist. I was forever entering prices and realizing afterwards that though
 the pricelist was in pounds, I had the currency set to dollars.
 
-CURRENCY: A currency is the rate of exchange of a particular monetary unit
+**CURRENCY**: A currency is the rate of exchange of a particular monetary unit
 against the euro. It is made up of:
 
  * a name,
@@ -124,8 +123,8 @@ currency and use a three letter currency code that isn't in use. You can see
 the rate on this and it will be left alone since it isn't a recognized currency
 code.
 
-Getting up and running
-----------------------
+### Getting up and running
+
 
 In general:
 
@@ -170,9 +169,3 @@ find out. And it'll even tell you how much it'll cost to buy those parts you
 don't have.
 
 Enjoy!
-
-Wayne Hortensius
-whortens@shaw.ca
-
-December 3, 2012
-
