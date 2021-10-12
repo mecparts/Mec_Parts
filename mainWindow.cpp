@@ -630,7 +630,7 @@ void MainWindow::AddPartCallback(const Gtk::TreeModel::iterator &iter)
 bool MainWindow::AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool updateExistingRow)
 {
 	// grab the relevant info from the selected part
-	gint64 partRowId = partRow[m_partsStore.m_rowId];
+	string partNumber = partRow[m_partsStore.m_partNumber];
 	string partRowPrefix = partRow[m_partsStore.m_pnPrefix];
 	int partRowDigits = partRow[m_partsStore.m_pnDigits];
 	string partRowSuffix = partRow[m_partsStore.m_pnSuffix];
@@ -642,8 +642,8 @@ bool MainWindow::AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool 
 	// look for an existing row or find the proper insertion point
 	for( Gtk::TreeModel::iterator r = rows.begin(); r != rows.end(); ++r ) {
 		Gtk::TreeModel::Row row = *r;
-		gint64 collectionRowId = row[m_collectionStore.m_rowId];
-		if( partRowId == collectionRowId ) {
+		string collectionPartNumber = row[m_collectionStore.m_partNumber];
+		if( partNumber == collectionPartNumber ) {
 			// found the part in the collection
 			if( updateExistingRow ) {
 				// we expected to find an existing row and did
@@ -681,7 +681,6 @@ bool MainWindow::AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool 
 		newRow = *(m_pCollectionStore->append());
 	}
 	// populate the part data in the collection datastore
-	newRow[m_collectionStore.m_rowId] = partRowId;
 	// use a temp string variable to assign datastore values to other
 	// datastore values. Trying to do it direct just doesn't work.
 	string temp;
@@ -698,14 +697,13 @@ bool MainWindow::AddPartToCollection(Gtk::TreeModel::Row partRow,int count,bool 
 	newRow[m_collectionStore.m_pnPrefix] = partRowPrefix;
 	newRow[m_collectionStore.m_pnDigits] = partRowDigits;
 	newRow[m_collectionStore.m_pnSuffix] = partRowSuffix;
-	string partNumber = partRow[m_partsStore.m_partNumber];
 	// insert the new part into the set in the database
 	stringstream sql;
 	sql 
 		<< "INSERT INTO set_parts(set_num,part_num,count) VALUES ('" 
 		<< m_pSql->Escape(m_collectionNumber) << "','" 
 		<< m_pSql->Escape(partNumber) << "'," << count << ")";
-	m_pSql->ExecNonQuery(&sql);
+	newRow[m_collectionStore.m_rowId] = m_pSql->ExecInsert(&sql);
 	return TRUE; // inserted
 }
 
