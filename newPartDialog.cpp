@@ -103,7 +103,7 @@ double NewPartDialog::Price()
 	try {
 		return atof(text.c_str());
 	}
-	catch (exception) {
+	catch (exception &) {
 		return 0.0;
 	}
 }

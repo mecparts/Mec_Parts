@@ -39,10 +39,10 @@ void signal_exception_handler()
 	catch( Glib::ustring ex ) {
 		cerr << ex << endl;
 	}
-	catch( Glib::KeyFileError ex ) {
+	catch( Glib::KeyFileError &ex ) {
 		cerr << "Glib::KeyFileError: " << ex.what() << endl;
 	}
-	catch( Glib::Error ex ) {
+	catch( Glib::Error &ex ) {
 		cerr << "Glib::Error: " << ex.what() << endl;
 	}
 	catch( exception &ex ) {
@@ -72,7 +72,7 @@ int main(int argc,char *argv[])
 	catch( Glib::ustring ex ) {
 		cerr << ex << endl;
 	}
-	catch( Glib::KeyFileError ex ) {
+	catch( Glib::KeyFileError &ex ) {
 		cerr << ex.what() << endl;
 	}
 	catch( exception &ex ) {

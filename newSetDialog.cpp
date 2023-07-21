@@ -91,7 +91,7 @@ int NewSetDialog::Started()
 	try {
 		year = atoi(text.c_str());
 	}
-	catch(exception) {
+	catch(exception &) {
 		year = 9999;
 	}
 	return year==0 ? 9999 : year;
@@ -104,7 +104,7 @@ int NewSetDialog::Ended()
 	try {
 		year = atoi(text.c_str());
 	}
-	catch(exception) {
+	catch(exception &) {
 		year = 9999;
 	}
 	return year==0 ? 9999 : year;
